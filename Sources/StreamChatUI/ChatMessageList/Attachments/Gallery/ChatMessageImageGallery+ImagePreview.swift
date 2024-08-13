@@ -57,11 +57,6 @@ extension ChatMessageGalleryView {
 
         // MARK: - Overrides
 
-        override open func setUpAppearance() {
-            super.setUpAppearance()
-            imageView.backgroundColor = appearance.colorPalette.background1
-        }
-
         override open func setUp() {
             super.setUp()
 
