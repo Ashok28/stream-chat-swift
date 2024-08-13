@@ -36,7 +36,7 @@ extension ChatMessageGalleryView {
 
         public private(set) lazy var imageView: UIImageView = {
             let imageView = UIImageView()
-            imageView.contentMode = .scaleAspectFill
+            imageView.contentMode = .scaleAspectFit
             imageView.layer.masksToBounds = true
             return imageView
                 .withoutAutoresizingMaskConstraints
