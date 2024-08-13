@@ -81,14 +81,14 @@ open class StreamAudioRecorder: NSObject, AudioRecording, AVAudioRecorderDelegat
         /// The default Configuration that is being bused by `StreamAudioRecorder`
         public static let `default` = Configuration(
             audioRecorderSettings: [
-                AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+                AVFormatIDKey: Int(kAudioFormatMPEGLayer3),
                 AVSampleRateKey: 12000,
                 AVNumberOfChannelsKey: 1,
                 AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
             ],
             audioRecorderBaseStorageURL: FileManager.default.temporaryDirectory,
             audioRecorderFileName: "recording",
-            audioRecorderFileExtension: "aac",
+            audioRecorderFileExtension: "mp3",
             metersObserverInterval: 0.1,
             durationObserverInterval: 0.5
         )
