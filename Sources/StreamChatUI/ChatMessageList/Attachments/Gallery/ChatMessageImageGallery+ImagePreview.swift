@@ -36,7 +36,7 @@ extension ChatMessageGalleryView {
 
         public private(set) lazy var imageView: UIImageView = {
             let imageView = UIImageView()
-            imageView.contentMode = .scaleAspectFit
+            imageView.contentMode = .scaleAspectFill
             imageView.layer.masksToBounds = true
             return imageView
                 .withoutAutoresizingMaskConstraints
@@ -56,6 +56,11 @@ extension ChatMessageGalleryView {
             .withAccessibilityIdentifier(identifier: "uploadingOverlay")
 
         // MARK: - Overrides
+
+        override open func setUpAppearance() {	
+            super.setUpAppearance()	
+            imageView.backgroundColor = appearance.colorPalette.background1	
+        }
 
         override open func setUp() {
             super.setUp()
