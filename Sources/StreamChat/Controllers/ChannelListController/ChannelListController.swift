@@ -31,6 +31,8 @@ extension ChatClient {
 }
 
 /// `ChatChannelListController` is a controller class which allows observing a list of chat channels based on the provided query.
+///
+/// - Note: For an async-await alternative of the `ChatChannelListController`, please check ``ChannelList`` in the async-await supported [state layer](https://getstream.io/chat/docs/sdk/ios/client/state-layer/state-layer-overview/).
 public class ChatChannelListController: DataController, DelegateCallable, DataStoreProvider {
     /// The query specifying and filtering the list of channels.
     public let query: ChannelListQuery
@@ -144,7 +146,7 @@ public class ChatChannelListController: DataController, DelegateCallable, DataSt
     override public func synchronize(_ completion: ((_ error: Error?) -> Void)? = nil) {
         startChannelListObserverIfNeeded()
         channelListLinker.start(with: client.eventNotificationCenter)
-        client.startTrackingChannelListController(self)
+        client.syncRepository.startTrackingChannelListController(self)
         updateChannelList(completion)
     }
 
@@ -191,6 +193,11 @@ public class ChatChannelListController: DataController, DelegateCallable, DataSt
 
     // MARK: - Internal
 
+    func refreshLoadedChannels(completion: @escaping (Result<Set<ChannelId>, Error>) -> Void) {
+        let channelCount = channelListObserver.items.count
+        worker.refreshLoadedChannels(for: query, channelCount: channelCount, completion: completion)
+    }
+    
     func resetQuery(
         watchedAndSynchedChannelIds: Set<ChannelId>,
         synchedChannelIds: Set<ChannelId>,

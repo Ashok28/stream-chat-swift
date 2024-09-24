@@ -3,15 +3,49 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Upcoming
 
+### 🔄 Changed
+
+# [4.63.0](https://github.com/GetStream/stream-chat-swift/releases/tag/4.63.0)
+_September 12, 2024_
+
+## StreamChat
+### ✅ Added
+- Local attachment downloads ([docs](https://getstream.io/chat/docs/sdk/ios/client/attachment-downloads)) [#3393](https://github.com/GetStream/stream-chat-swift/pull/3393)
+  - Add `downloadAttachment(_:)` and `deleteLocalAttachmentDownload(for:)` to `Chat` and `MessageController`
+  - Add `deleteAllLocalAttachmentDownloads()` to `ConnectedUser` and `CurrentUserController`
+- Add `unset` argument to `CurrentChatUserController.updateUserData` and `ConnectedUser.update` for clearing user data fields [#3404](https://github.com/GetStream/stream-chat-swift/pull/3404)
+- Add `reason` and `extraData` arguments to `ChatUserController.flag(reason:extraData:completion:)` and `ConnectedUser.flag(_:reason:extraData:)` [#3417](https://github.com/GetStream/stream-chat-swift/pull/3417)
+- Add `extraData` argument to `ChatMessageController.flag(reason:extraData:completion:)` and `Chat.flagMessage(_:reason:extraData:)` [#3417](https://github.com/GetStream/stream-chat-swift/pull/3417)
+### 🐞 Fixed
+- Fix Logger printing the incorrect thread name [#3382](https://github.com/GetStream/stream-chat-swift/pull/3382)
+- Channel watching did not resume on web-socket reconnection [#3409](https://github.com/GetStream/stream-chat-swift/pull/3409)
+### 🔄 Changed
+- Discard offline state changes when saving database changes fails [#3399](https://github.com/GetStream/stream-chat-swift/pull/3399)
+- Deprecate `Filter.notEqual` and `Filter.notIn` [#3414](https://github.com/GetStream/stream-chat-swift/pull/3414)
+
+## StreamChatUI
+### ✅ Added
+- Downloading and sharing file attachments in the message list [#3393](https://github.com/GetStream/stream-chat-swift/pull/3393)
+  - Feature toggle for download and share buttons: `Components.default.isDownloadFileAttachmentsEnabled` (default is `false`)
+
+# [4.62.0](https://github.com/GetStream/stream-chat-swift/releases/tag/4.62.0)
+_August 15, 2024_
+
 ## StreamChat
 ### ⚡ Performance
 - Use background database observers for `CurrentUserController.currentUser`, `ChatChannelMemberListController.members`, and `ChatMessageController.message` which reduces CPU usage on the main thread [#3357](https://github.com/GetStream/stream-chat-swift/pull/3357)
+- `CurrentChatUserController` was often recreated when sending typing events [#3372](https://github.com/GetStream/stream-chat-swift/pull/3372)
+- Reduce latency of the `BackgroundDatabaseObserver` by reducing thread switching when handling changes [#3373](https://github.com/GetStream/stream-chat-swift/pull/3373)
 ### 🐞 Fixed
+- Fix an issue where pending messages ([moderation feature](https://getstream.io/chat/docs/ios-swift/pending_messages/)) were not visible after returning to the channel [#3378](https://github.com/GetStream/stream-chat-swift/pull/3378)
 - Fix rare crashes when deleting local database content on logout [#3355](https://github.com/GetStream/stream-chat-swift/pull/3355)
 - Fix rare crashes in `MulticastDelegate` when accessing it concurrently [#3361](https://github.com/GetStream/stream-chat-swift/pull/3361)
+- Fix reading the local database state just after the initial write [#3373](https://github.com/GetStream/stream-chat-swift/pull/3373)
+- Fix a timing issue where accessing channels in `controllerWillChangeChannels` returned already changed channels [#3373](https://github.com/GetStream/stream-chat-swift/pull/3373)
 ### 🔄 Changed
 - Made loadBlockedUsers in ConnectedUser public [#3352](https://github.com/GetStream/stream-chat-swift/pull/3352)
 - Removed Agora and 100ms related code, the recommended way to support calls is to use StreamVideo [#3364](https://github.com/GetStream/stream-chat-swift/pull/3364)
+- Run offline state sync in the background instead of pausing other API requests while it runs [#3367](https://github.com/GetStream/stream-chat-swift/pull/3367)
 
 # [4.61.0](https://github.com/GetStream/stream-chat-swift/releases/tag/4.61.0)
 _July 30, 2024_

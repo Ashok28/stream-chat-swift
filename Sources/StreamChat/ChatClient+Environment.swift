@@ -11,15 +11,9 @@ extension ChatClient {
             _ sessionConfiguration: URLSessionConfiguration,
             _ requestEncoder: RequestEncoder,
             _ requestDecoder: RequestDecoder,
+            _ attachmentDownloader: AttachmentDownloader,
             _ attachmentUploader: AttachmentUploader
-        ) -> APIClient = {
-            APIClient(
-                sessionConfiguration: $0,
-                requestEncoder: $1,
-                requestDecoder: $2,
-                attachmentUploader: $3
-            )
-        }
+        ) -> APIClient = APIClient.init
 
         var webSocketClientBuilder: ((
             _ sessionConfiguration: URLSessionConfiguration,
@@ -124,8 +118,6 @@ extension ChatClient {
 
         var syncRepositoryBuilder: (
             _ config: ChatClientConfig,
-            _ activeChannelControllers: ThreadSafeWeakCollection<ChatChannelController>,
-            _ activeChannelListControllers: ThreadSafeWeakCollection<ChatChannelListController>,
             _ offlineRequestsRepository: OfflineRequestsRepository,
             _ eventNotificationCenter: EventNotificationCenter,
             _ database: DatabaseContainer,
@@ -134,13 +126,11 @@ extension ChatClient {
         ) -> SyncRepository = {
             SyncRepository(
                 config: $0,
-                activeChannelControllers: $1,
-                activeChannelListControllers: $2,
-                offlineRequestsRepository: $3,
-                eventNotificationCenter: $4,
-                database: $5,
-                apiClient: $6,
-                channelListUpdater: $7
+                offlineRequestsRepository: $1,
+                eventNotificationCenter: $2,
+                database: $3,
+                apiClient: $4,
+                channelListUpdater: $5
             )
         }
 

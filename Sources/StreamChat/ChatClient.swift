@@ -10,6 +10,8 @@ import Foundation
 ///
 /// Typically, an app contains just one instance of `ChatClient`. However, it's possible to have multiple instances if your use
 /// case requires it (i.e. more than one window with different workspaces in a Slack-like app).
+///
+/// - Important: When using multiple instances of `ChatClient` at the same time, it is required to use a different ``ChatClientConfig/localStorageFolderURL`` for each instance. For example, adding an additional path component to the default URL.
 public class ChatClient {
     /// The `UserId` of the currently logged in user.
     public var currentUserId: UserId? {
@@ -46,15 +48,14 @@ public class ChatClient {
     /// work if needed (i.e. when a new message pending sent appears in the database, a worker tries to send it.)
     private(set) var backgroundWorkers: [Worker] = []
 
-    /// Keeps a weak reference to the active channel list controllers to ensure a proper recovery when coming back online
-    private(set) var activeChannelListControllers = ThreadSafeWeakCollection<ChatChannelListController>()
-    private(set) var activeChannelControllers = ThreadSafeWeakCollection<ChatChannelController>()
-
     /// Background worker that takes care about client connection recovery when the Internet comes back OR app transitions from background to foreground.
     private(set) var connectionRecoveryHandler: ConnectionRecoveryHandler?
 
     /// The notification center used to send and receive notifications about incoming events.
     private(set) var eventNotificationCenter: EventNotificationCenter
+    
+    private var _sharedCurrentUserController: CurrentChatUserController?
+    private let queue = DispatchQueue(label: "io.getstream.chat-client")
 
     /// The registry that contains all the attachment payloads associated with their attachment types.
     /// For the meantime this is a static property to avoid breaking changes. On v5, this can be changed.
@@ -100,6 +101,8 @@ public class ChatClient {
 
     /// The environment object containing all dependencies of this `Client` instance.
     private let environment: Environment
+    
+    @Atomic static var activeLocalStorageURLs = Set<URL>()
 
     /// The default configuration of URLSession to be used for both the `APIClient` and `WebSocketClient`. It contains all
     /// required header auth parameters to make a successful request.
@@ -167,8 +170,6 @@ public class ChatClient {
         )
         let syncRepository = environment.syncRepositoryBuilder(
             config,
-            activeChannelControllers,
-            activeChannelListControllers,
             offlineRequestsRepository,
             eventNotificationCenter,
             databaseContainer,
@@ -220,9 +221,11 @@ public class ChatClient {
         setupTokenRefresher()
         setupOfflineRequestQueue()
         setupConnectionRecoveryHandler(with: environment)
+        validateIntegrity()
     }
 
     deinit {
+        Self._activeLocalStorageURLs.mutate { $0.subtract(databaseContainer.persistentStoreDescriptions.compactMap(\.url)) }
         completeConnectionIdWaiters(connectionId: nil)
         completeTokenWaiters(token: nil)
     }
@@ -257,6 +260,20 @@ public class ChatClient {
             config.staysConnectedInBackground,
             config.reconnectionTimeout.map { ScheduledStreamTimer(interval: $0, fireOnStart: false, repeats: false) }
         )
+    }
+    
+    private func validateIntegrity() {
+        Self._activeLocalStorageURLs.mutate { urls in
+            let existingCount = urls.count
+            urls.formUnion(databaseContainer.persistentStoreDescriptions.compactMap(\.url).filter { $0.path != "/dev/null" })
+            guard existingCount == urls.count, !urls.isEmpty else { return }
+            log.error(
+                """
+                There are multiple ChatClient instances using the same `ChatClientConfig.localStorageFolderURL` - this is disallowed.
+                Either create a shared instance or make sure the previous instance of `ChatClient` is deallocated.
+                """
+            )
+        }
     }
 
     /// Register a custom attachment payload.
@@ -467,10 +484,9 @@ public class ChatClient {
     /// Disconnects the chat client from the chat servers and removes all the local data related.
     public func logout(completion: @escaping () -> Void) {
         authenticationRepository.logOutUser()
+        resetSharedCurrentUserController()
 
         // Stop tracking active components
-        activeChannelControllers.removeAllObjects()
-        activeChannelListControllers.removeAllObjects()
         syncRepository.removeAllTracked()
 
         let group = DispatchGroup()
@@ -591,29 +607,6 @@ public class ChatClient {
         ]
     }
 
-    func startTrackingChannelController(_ channelController: ChatChannelController) {
-        // If it is already tracking, do nothing.
-        guard !activeChannelControllers.contains(channelController) else {
-            return
-        }
-        activeChannelControllers.add(channelController)
-    }
-
-    func stopTrackingChannelController(_ channelController: ChatChannelController) {
-        activeChannelControllers.remove(channelController)
-    }
-
-    func startTrackingChannelListController(_ channelListController: ChatChannelListController) {
-        guard !activeChannelListControllers.contains(channelListController) else {
-            return
-        }
-        activeChannelListControllers.add(channelListController)
-    }
-
-    func stopTrackingChannelListController(_ channelListController: ChatChannelListController) {
-        activeChannelListControllers.remove(channelListController)
-    }
-
     func completeConnectionIdWaiters(connectionId: String?) {
         connectionRepository.completeConnectionIdWaiters(connectionId: connectionId)
     }
@@ -627,6 +620,24 @@ public class ChatClient {
     private func refreshToken(completion: ((Error?) -> Void)?) {
         authenticationRepository.refreshToken {
             completion?($0)
+        }
+    }
+    
+    /// A shared user controller for an easy access to the current user.
+    var sharedCurrentUserController: CurrentChatUserController {
+        queue.sync {
+            if let controller = _sharedCurrentUserController {
+                return controller
+            }
+            let controller = currentUserController()
+            _sharedCurrentUserController = controller
+            return controller
+        }
+    }
+    
+    func resetSharedCurrentUserController() {
+        queue.async {
+            self._sharedCurrentUserController = nil
         }
     }
 }
