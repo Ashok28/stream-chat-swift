@@ -3,7 +3,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Upcoming
 
+## StreamChatUI
+### ✅ Added
+- Open `shouldMarkThreadRead` and `shouldMarkChannelRead` [#3468](https://github.com/GetStream/stream-chat-swift/pull/3468)
+
+# [4.65.0](https://github.com/GetStream/stream-chat-swift/releases/tag/4.65.0)
+_October 18, 2024_
+
+## StreamChat
+### 🐞 Fixed
+- Fix a rare crash caused by missing uniqueness constraints in polls [#3454](https://github.com/GetStream/stream-chat-swift/pull/3454)
+- Fix rare crash in `WebSocketPingController.connectionStateDidChange` [#3451](https://github.com/GetStream/stream-chat-swift/pull/3451)
+- Improve reliability and performance of resetting ephemeral values [#3439](https://github.com/GetStream/stream-chat-swift/pull/3439)
+- Reduce channel list updates when updating the local state [#3450](https://github.com/GetStream/stream-chat-swift/pull/3450)
 ### 🔄 Changed
+- Reverts "Fix old channel updates not being added to the channel list automatically" [#3465](https://github.com/GetStream/stream-chat-swift/pull/3465)
+  - This was causing some issues on the SwiftUI SDK, so we are temporarily reverting this.
+
+## StreamChatUI
+### 🐞 Fixed
+- Unread messages divider did not appear in the message list when marking messages as unread [#3444](https://github.com/GetStream/stream-chat-swift/pull/3444)
+- Fix UI glitch in thread parent message when sending a message and scrolling [#3446](https://github.com/GetStream/stream-chat-swift/pull/3446)
+### ⚡ Performance
+- Improve performance of presenting `ChatChannelVC` [#3448](https://github.com/GetStream/stream-chat-swift/pull/3448)
 
 # [4.64.0](https://github.com/GetStream/stream-chat-swift/releases/tag/4.64.0)
 _October 02, 2024_

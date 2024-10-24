@@ -7,7 +7,7 @@ import Foundation
 /// A final class that holds the context for the ongoing operations during the sync process
 final class SyncContext {
     let lastSyncAt: Date
-    var localChannelIds: [ChannelId] = []
+    var localChannelIds: Set<ChannelId> = Set()
     var synchedChannelIds: Set<ChannelId> = Set()
     var watchedAndSynchedChannelIds: Set<ChannelId> = Set()
     var unwantedChannelIds: Set<ChannelId> = Set()
@@ -19,7 +19,7 @@ final class SyncContext {
 
 private let syncOperationsMaximumRetries = 2
 
-final class ActiveChannelIdsOperation: AsyncOperation {
+final class ActiveChannelIdsOperation: AsyncOperation, @unchecked Sendable {
     init(
         syncRepository: SyncRepository,
         context: SyncContext
@@ -31,13 +31,13 @@ final class ActiveChannelIdsOperation: AsyncOperation {
             }
             
             let completion: () -> Void = {
-                context.localChannelIds = Array(Set(context.localChannelIds))
+                context.localChannelIds = Set(context.localChannelIds)
                 log.info("Found \(context.localChannelIds.count) active channels", subsystems: .offlineSupport)
                 done(.continue)
             }
             
-            context.localChannelIds.append(contentsOf: syncRepository.activeChannelControllers.allObjects.compactMap(\.cid))
-            context.localChannelIds.append(contentsOf:
+            context.localChannelIds.formUnion(syncRepository.activeChannelControllers.allObjects.compactMap(\.cid))
+            context.localChannelIds.formUnion(
                 syncRepository.activeChannelListControllers.allObjects
                     .map(\.channels)
                     .flatMap { $0 }
@@ -51,8 +51,8 @@ final class ActiveChannelIdsOperation: AsyncOperation {
             } else {
                 // Main actor requirement
                 DispatchQueue.main.async {
-                    context.localChannelIds.append(contentsOf: syncRepository.activeChats.allObjects.compactMap { try? $0.cid })
-                    context.localChannelIds.append(contentsOf:
+                    context.localChannelIds.formUnion(syncRepository.activeChats.allObjects.compactMap { try? $0.cid })
+                    context.localChannelIds.formUnion(
                         syncRepository.activeChannelLists.allObjects
                             .map(\.state.channels)
                             .flatMap { $0 }
@@ -65,7 +65,7 @@ final class ActiveChannelIdsOperation: AsyncOperation {
     }
 }
 
-final class RefreshChannelListOperation: AsyncOperation {
+final class RefreshChannelListOperation: AsyncOperation, @unchecked Sendable {
     init(controller: ChatChannelListController, context: SyncContext) {
         super.init(maxRetries: syncOperationsMaximumRetries) { [weak controller] _, done in
             guard let controller = controller, controller.canBeRecovered else {
@@ -107,7 +107,7 @@ final class RefreshChannelListOperation: AsyncOperation {
     }
 }
 
-final class GetChannelIdsOperation: AsyncOperation {
+final class GetChannelIdsOperation: AsyncOperation, @unchecked Sendable {
     init(database: DatabaseContainer, context: SyncContext, activeChannelIds: [ChannelId]) {
         super.init(maxRetries: syncOperationsMaximumRetries) { [weak database] _, done in
             guard let database = database else {
@@ -119,14 +119,14 @@ final class GetChannelIdsOperation: AsyncOperation {
                     .flatMap(\.channels)
                     .compactMap { try? ChannelId(cid: $0.cid) }
                 log.info("0. Retrieved channels from existing queries from DB. Count \(cids.count)", subsystems: .offlineSupport)
-                context.localChannelIds = Array(Set(cids + activeChannelIds))
+                context.localChannelIds = Set(cids + activeChannelIds)
                 done(.continue)
             }
         }
     }
 }
 
-final class SyncEventsOperation: AsyncOperation {
+final class SyncEventsOperation: AsyncOperation, @unchecked Sendable {
     init(syncRepository: SyncRepository, context: SyncContext, recovery: Bool) {
         super.init(maxRetries: syncOperationsMaximumRetries) { [weak syncRepository] _, done in
             log.info(
@@ -134,17 +134,22 @@ final class SyncEventsOperation: AsyncOperation {
                 subsystems: .offlineSupport
             )
 
+            let channelIds = Set(context.localChannelIds).subtracting(context.synchedChannelIds)
+            guard !channelIds.isEmpty else {
+                done(.continue)
+                return
+            }
+            
             syncRepository?.syncChannelsEvents(
-                channelIds: context.localChannelIds,
+                channelIds: Array(channelIds),
                 lastSyncAt: context.lastSyncAt,
                 isRecovery: recovery
             ) { result in
                 switch result {
                 case let .success(channelIds):
-                    context.synchedChannelIds = Set(channelIds)
+                    context.synchedChannelIds.formUnion(channelIds)
                     done(.continue)
                 case let .failure(error):
-                    context.synchedChannelIds = Set([])
                     done(error.shouldRetry ? .retry : .continue)
                 }
             }
@@ -152,7 +157,7 @@ final class SyncEventsOperation: AsyncOperation {
     }
 }
 
-final class WatchChannelOperation: AsyncOperation {
+final class WatchChannelOperation: AsyncOperation, @unchecked Sendable {
     init(controller: ChatChannelController, context: SyncContext, recovery: Bool) {
         super.init(maxRetries: syncOperationsMaximumRetries) { [weak controller] _, done in
             guard let controller = controller, controller.canBeRecovered else {
@@ -203,7 +208,7 @@ final class WatchChannelOperation: AsyncOperation {
     }
 }
 
-final class RefetchChannelListQueryOperation: AsyncOperation {
+final class RefetchChannelListQueryOperation: AsyncOperation, @unchecked Sendable {
     init(controller: ChatChannelListController, context: SyncContext) {
         super.init(maxRetries: syncOperationsMaximumRetries) { [weak controller] _, done in
             guard let controller = controller, controller.canBeRecovered else {
@@ -247,8 +252,8 @@ final class RefetchChannelListQueryOperation: AsyncOperation {
         case let .success((watchedChannels, unwantedCids)):
             log.info("Successfully refetched query for \(query.debugDescription)", subsystems: .offlineSupport)
             let queryChannelIds = watchedChannels.map(\.cid)
-            context.watchedAndSynchedChannelIds = context.watchedAndSynchedChannelIds.union(queryChannelIds)
-            context.unwantedChannelIds = context.unwantedChannelIds.union(unwantedCids)
+            context.watchedAndSynchedChannelIds.formUnion(queryChannelIds)
+            context.unwantedChannelIds.formUnion(unwantedCids)
             done(.continue)
         case let .failure(error):
             log.error(
@@ -260,7 +265,7 @@ final class RefetchChannelListQueryOperation: AsyncOperation {
     }
 }
 
-final class DeleteUnwantedChannelsOperation: AsyncOperation {
+final class DeleteUnwantedChannelsOperation: AsyncOperation, @unchecked Sendable {
     init(database: DatabaseContainer, context: SyncContext) {
         super.init(maxRetries: syncOperationsMaximumRetries) { [weak database] _, done in
             log.info("4. Clean up unwanted channels", subsystems: .offlineSupport)
@@ -293,7 +298,7 @@ final class DeleteUnwantedChannelsOperation: AsyncOperation {
     }
 }
 
-final class ExecutePendingOfflineActions: AsyncOperation {
+final class ExecutePendingOfflineActions: AsyncOperation, @unchecked Sendable {
     init(offlineRequestsRepository: OfflineRequestsRepository) {
         super.init(maxRetries: syncOperationsMaximumRetries) { [weak offlineRequestsRepository] _, done in
             log.info("Running offline actions requests", subsystems: .offlineSupport)
