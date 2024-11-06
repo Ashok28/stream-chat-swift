@@ -3,9 +3,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Upcoming
 
+### 🔄 Changed
+
+# [4.66.0](https://github.com/GetStream/stream-chat-swift/releases/tag/4.66.0)
+_November 05, 2024_
+
+## StreamChat
+### ✅ Added
+- Add support for system messages not updating `channel.lastMessageAt` [#3476](https://github.com/GetStream/stream-chat-swift/pull/3476)
+- Add support for sending system messages client-side
+[#3477](https://github.com/GetStream/stream-chat-swift/pull/3477)
+### 🐞 Fixed
+- Fix watching channels when performing channel search [#3472](https://github.com/GetStream/stream-chat-swift/pull/3472)
+
 ## StreamChatUI
 ### ✅ Added
 - Open `shouldMarkThreadRead` and `shouldMarkChannelRead` [#3468](https://github.com/GetStream/stream-chat-swift/pull/3468)
+### 🐞 Fixed
+- Fix channel list state views not updating when the view is not visible [#3479](https://github.com/GetStream/stream-chat-swift/pull/3479)
 
 # [4.65.0](https://github.com/GetStream/stream-chat-swift/releases/tag/4.65.0)
 _October 18, 2024_
