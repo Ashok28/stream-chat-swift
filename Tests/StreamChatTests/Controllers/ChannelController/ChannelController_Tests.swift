@@ -38,6 +38,7 @@ final class ChannelController_Tests: XCTestCase {
     override func tearDown() {
         client?.cleanUp()
         env?.channelUpdater?.cleanUp()
+        env?.memberUpdater?.cleanUp()
         env?.eventSender?.cleanUp()
         env = nil
 
@@ -2987,6 +2988,8 @@ final class ChannelController_Tests: XCTestCase {
         controller.sendKeystrokeEvent {
             XCTAssertNil($0)
         }
+        wait(for: [env.eventSender!.keystroke_completion_expectation], timeout: defaultTimeout)
+        env.eventSender!.keystroke_completion_expectation = XCTestExpectation()
 
         // Simulate `keystroke` call and catch the completion
         var completionCalledError: Error?
@@ -3000,6 +3003,7 @@ final class ChannelController_Tests: XCTestCase {
         controller = nil
 
         // Check keystroke cid.
+        wait(for: [env.eventSender!.keystroke_completion_expectation], timeout: defaultTimeout)
         XCTAssertEqual(env.eventSender!.keystroke_cid, channelId)
 
         // Simulate failed update
@@ -3059,6 +3063,8 @@ final class ChannelController_Tests: XCTestCase {
         controller.sendStartTypingEvent {
             XCTAssertNil($0)
         }
+        wait(for: [env.eventSender!.startTyping_completion_expectation], timeout: defaultTimeout)
+        env.eventSender!.startTyping_completion_expectation = XCTestExpectation()
 
         // Simulate `startTyping` call and catch the completion
         var completionCalledError: Error?
@@ -3072,6 +3078,7 @@ final class ChannelController_Tests: XCTestCase {
         controller = nil
 
         // Check `startTyping` cid.
+        wait(for: [env.eventSender!.startTyping_completion_expectation], timeout: defaultTimeout)
         XCTAssertEqual(env.eventSender!.startTyping_cid, channelId)
 
         // Simulate failed update
@@ -3131,7 +3138,9 @@ final class ChannelController_Tests: XCTestCase {
         controller.sendStopTypingEvent {
             XCTAssertNil($0)
         }
-
+        wait(for: [env.eventSender!.stopTyping_completion_expectation], timeout: defaultTimeout)
+        env.eventSender!.stopTyping_completion_expectation = XCTestExpectation()
+        
         // Simulate `stopTyping` call and catch the completion
         var completionCalledError: Error?
         controller.sendStopTypingEvent { completionCalledError = $0 }
@@ -3144,6 +3153,7 @@ final class ChannelController_Tests: XCTestCase {
         controller = nil
 
         // Check `stopTyping` cid.
+        wait(for: [env.eventSender!.stopTyping_completion_expectation], timeout: defaultTimeout)
         XCTAssertEqual(env.eventSender!.stopTyping_cid, channelId)
 
         // Simulate failed update
@@ -4988,6 +4998,88 @@ final class ChannelController_Tests: XCTestCase {
         // Completion should be called with the error
         AssertAsync.willBeEqual(completionCalledError as? TestError, testError)
     }
+    
+    // MARK: - Pinning and Unpinning Channels
+    
+    func test_pin_callsChannelUpdater() throws {
+        let currentUserId = UserId.unique
+        client.currentUserId_mock = currentUserId
+        
+        env.memberUpdater!.partialUpdate_completion_result = .success(
+            ChatChannelMember.mock(
+                id: currentUserId,
+                pinnedAt: .unique
+            )
+        )
+        let resultingError = try waitFor { done in
+            controller.pin { [callbackQueueID] error in
+                AssertTestQueue(withId: callbackQueueID)
+                done(error)
+            }
+        }
+        XCTAssertEqual(channelId, env.memberUpdater!.partialUpdate_cid)
+        XCTAssertEqual(currentUserId, env.memberUpdater!.partialUpdate_userId)
+        XCTAssertEqual(nil, env.memberUpdater!.partialUpdate_unset)
+        XCTAssertEqual(MemberUpdatePayload(pinned: true), env.memberUpdater!.partialUpdate_updates)
+    }
+    
+    func test_unpin_callsChannelUpdater() throws {
+        let currentUserId = UserId.unique
+        client.currentUserId_mock = currentUserId
+        
+        env.memberUpdater!.partialUpdate_completion_result = .success(
+            ChatChannelMember.mock(
+                id: currentUserId,
+                pinnedAt: .unique
+            )
+        )
+        let resultingError = try waitFor { done in
+            controller.unpin { [callbackQueueID] error in
+                AssertTestQueue(withId: callbackQueueID)
+                done(error)
+            }
+        }
+        XCTAssertEqual(channelId, env.memberUpdater!.partialUpdate_cid)
+        XCTAssertEqual(currentUserId, env.memberUpdater!.partialUpdate_userId)
+        XCTAssertEqual(["pinned"], env.memberUpdater!.partialUpdate_unset)
+        XCTAssertEqual(nil, env.memberUpdater!.partialUpdate_updates)
+    }
+    
+    func test_pin_propagatesErrorFromUpdater() throws {
+        client.currentUserId_mock = .unique
+        let expectedError = TestError()
+        
+        env.memberUpdater!.partialUpdate_completion_result = .failure(expectedError)
+        let resultingError = try waitFor { done in
+            controller.pin { [callbackQueueID] error in
+                AssertTestQueue(withId: callbackQueueID)
+                done(error)
+            }
+        }
+        XCTAssertEqual(expectedError, resultingError as? TestError, resultingError?.localizedDescription ?? "")
+        XCTAssertEqual(channelId, env.memberUpdater!.partialUpdate_cid)
+        XCTAssertEqual(client.currentUserId, env.memberUpdater!.partialUpdate_userId)
+        XCTAssertEqual(nil, env.memberUpdater!.partialUpdate_unset)
+        XCTAssertEqual(MemberUpdatePayload(pinned: true), env.memberUpdater!.partialUpdate_updates)
+    }
+    
+    func test_unpin_propagatesErrorFromUpdater() throws {
+        client.currentUserId_mock = .unique
+        let expectedError = TestError()
+        
+        env.memberUpdater!.partialUpdate_completion_result = .failure(expectedError)
+        let resultingError = try waitFor { done in
+            controller.unpin { [callbackQueueID] error in
+                AssertTestQueue(withId: callbackQueueID)
+                done(error)
+            }
+        }
+        XCTAssertEqual(expectedError, resultingError as? TestError, resultingError?.localizedDescription ?? "")
+        XCTAssertEqual(channelId, env.memberUpdater!.partialUpdate_cid)
+        XCTAssertEqual(client.currentUserId, env.memberUpdater!.partialUpdate_userId)
+        XCTAssertEqual(["pinned"], env.memberUpdater!.partialUpdate_unset)
+        XCTAssertEqual(nil, env.memberUpdater!.partialUpdate_updates)
+    }
 
     // MARK: - UploadAttachment
 
@@ -5618,6 +5710,7 @@ private class ControllerUpdateWaiter: ChatChannelControllerDelegate {
 
 private class TestEnvironment {
     var channelUpdater: ChannelUpdater_Mock?
+    var memberUpdater: ChannelMemberUpdater_Mock?
     var eventSender: TypingEventsSender_Mock?
 
     lazy var environment: ChatChannelController.Environment = .init(
@@ -5630,6 +5723,10 @@ private class TestEnvironment {
                 apiClient: $4
             )
             return self.channelUpdater!
+        },
+        memberUpdaterBuilder: { [unowned self] in
+            self.memberUpdater = ChannelMemberUpdater_Mock(database: $0, apiClient: $1)
+            return self.memberUpdater!
         },
         eventSenderBuilder: { [unowned self] in
             self.eventSender = TypingEventsSender_Mock(database: $0, apiClient: $1)

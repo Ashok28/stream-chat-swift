@@ -3,7 +3,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Upcoming
 
+## StreamChat
+### ✅ Added
+- Pinning channels for the current user [#3518](https://github.com/GetStream/stream-chat-swift/pull/3518)
+  - Add `Chat.pin(scope:)` and `Chat.unpin(scope:)`
+  - Add `ChatChannelController.pin(scope:completion:)` and `ChatChannelController.unpin(scope:completion:)`
+  - Add `FilterKey.pinned` for filtering channel lists
+  - Add `ChannelListSortingKey.pinnedAt`
+  - Add `ChatChannel.membership.pinnedAt`
+  - Add `ChatChannel.isPinned`
+
+# [4.68.0](https://github.com/GetStream/stream-chat-swift/releases/tag/4.68.0)
+_December 03, 2024_
+
+## StreamChat
+### 🐞 Fixed
+- Fix a rare infinite loop triggering a crash when handling database changes [#3508](https://github.com/GetStream/stream-chat-swift/pull/3508)
+- Fix reconnection timeout handler not working in the token provider phase [#3513](https://github.com/GetStream/stream-chat-swift/pull/3513)
 ### 🔄 Changed
+- Minor breaking change in the test tools. Some mock classes were made internal and now require a `@testable` annotation [#3509](https://github.com/GetStream/stream-chat-swift/pull/3509)
+
+## StreamChatUI
+### 🐞 Fixed
+- Fix Channel List search bar disappearing after it loses scrollability in rare scenarios [#3515](https://github.com/GetStream/stream-chat-swift/pull/3515)
 
 # [4.67.0](https://github.com/GetStream/stream-chat-swift/releases/tag/4.67.0)
 _November 25, 2024_
