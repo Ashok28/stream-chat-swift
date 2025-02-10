@@ -373,7 +373,10 @@ open class StreamAudioRecorder: NSObject, AudioRecording, AVAudioRecorderDelegat
         /// Configure the AVAudioRecorder instance
         audioRecorder.delegate = self
         audioRecorder.isMeteringEnabled = true
-        audioRecorder.prepareToRecord()
+        let audioRecorderPrepared = audioRecorder.prepareToRecord()
+        if !audioRecorderPrepared {
+            throw AudioRecorderError.failedToBegin()
+        }
 
         return audioRecorder
     }
