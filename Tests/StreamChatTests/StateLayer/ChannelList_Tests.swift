@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 @testable import StreamChat
@@ -237,7 +237,7 @@ final class ChannelList_Tests: XCTestCase {
         try await env.client.mockDatabaseContainer.write { session in
             session.saveChannelList(payload: incomingChannelListPayload, query: self.channelList.query)
         }
-        await fulfillmentCompatibility(of: [expectation], timeout: defaultTimeout)
+        await fulfillment(of: [expectation], timeout: defaultTimeout)
         cancellable.cancel()
     }
     
@@ -266,7 +266,7 @@ final class ChannelList_Tests: XCTestCase {
         try await env.client.mockDatabaseContainer.write { session in
             session.saveChannelList(payload: incomingChannelListPayload, query: self.channelList.query)
         }
-        await fulfillmentCompatibility(of: [expectation], timeout: defaultTimeout)
+        await fulfillment(of: [expectation], timeout: defaultTimeout)
         cancellable.cancel()
     }
     
@@ -303,7 +303,43 @@ final class ChannelList_Tests: XCTestCase {
         try await env.client.mockDatabaseContainer.write { session in
             session.saveChannelList(payload: incomingChannelListPayload, query: self.channelList.query)
         }
-        await fulfillmentCompatibility(of: [expectation], timeout: defaultTimeout)
+        await fulfillment(of: [expectation], timeout: defaultTimeout)
+        cancellable.cancel()
+    }
+    
+    func test_observingLocalStore_whenStoreChangesWithArchivedChannels_thenStateChanges() async throws {
+        let expectation = XCTestExpectation(description: "State changed")
+        let incomingChannelListPayload = makeMatchingChannelListPayload(
+            channelCount: 5,
+            createdAtOffset: 0,
+            membersCreator: { _, channelOffset in
+                [
+                    .dummy(
+                        user: .dummy(userId: self.memberId),
+                        archivedAt: Date(timeIntervalSinceReferenceDate: TimeInterval(channelOffset))
+                    ),
+                    .dummy()
+                ]
+            }
+        )
+        await setUpChannelList(
+            usesMockedChannelUpdater: false,
+            filter: .and([
+                .in(.members, values: [memberId]),
+                .equal(.archived, to: true)
+            ])
+        )
+        let cancellable = await channelList.state.$channels
+            .dropFirst() // ignore initial
+            .sink { channels in
+                XCTAssertEqual(incomingChannelListPayload.channels.map(\.channel.cid.rawValue), channels.map(\.cid.rawValue))
+                XCTAssertTrue(channels.allSatisfy(\.isArchived), channels.filter { !$0.isArchived }.map(\.cid.rawValue).joined())
+                expectation.fulfill()
+            }
+        try await env.client.mockDatabaseContainer.write { session in
+            session.saveChannelList(payload: incomingChannelListPayload, query: self.channelList.query)
+        }
+        await fulfillment(of: [expectation], timeout: defaultTimeout)
         cancellable.cancel()
     }
     
@@ -345,7 +381,7 @@ final class ChannelList_Tests: XCTestCase {
         let eventExpectation = XCTestExpectation(description: "Event processed")
         env.client.eventNotificationCenter.process([event], completion: { eventExpectation.fulfill() })
 
-        await fulfillmentCompatibility(of: [eventExpectation, stateExpectation], timeout: defaultTimeout, enforceOrder: true)
+        await fulfillment(of: [eventExpectation, stateExpectation], timeout: defaultTimeout, enforceOrder: true)
         cancellable.cancel()
     }
     
@@ -378,7 +414,7 @@ final class ChannelList_Tests: XCTestCase {
         )
         let eventExpectation = XCTestExpectation(description: "Event processed")
         env.client.eventNotificationCenter.process([event], completion: { eventExpectation.fulfill() })
-        await fulfillmentCompatibility(of: [eventExpectation], timeout: defaultTimeout, enforceOrder: true)
+        await fulfillment(of: [eventExpectation], timeout: defaultTimeout, enforceOrder: true)
         cancellable.cancel()
     }
     
@@ -501,20 +537,5 @@ extension ChannelList_Tests {
                 }
             )
         }
-    }
-}
-
-extension XCTestCase {
-    func fulfillmentCompatibility(of expectations: [XCTestExpectation], timeout seconds: TimeInterval, enforceOrder enforceOrderOfFulfillment: Bool = false) async {
-        #if swift(>=5.8)
-        await fulfillment(of: expectations, timeout: seconds, enforceOrder: enforceOrderOfFulfillment)
-        #else
-        await withCheckedContinuation { continuation in
-            Thread.detachNewThread { [self] in
-                wait(for: expectations, timeout: seconds, enforceOrder: enforceOrderOfFulfillment)
-                continuation.resume()
-            }
-        }
-        #endif
     }
 }

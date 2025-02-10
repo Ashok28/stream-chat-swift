@@ -4,7 +4,84 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 # Upcoming
 
 ## StreamChat
+### 🐞 Fixed
+- Update channel's preview message when coming back to online [#3574](https://github.com/GetStream/stream-chat-swift/pull/3574)
+### 🔄 Changed
+
+# [4.72.0](https://github.com/GetStream/stream-chat-swift/releases/tag/4.72.0)
+_February 04, 2025_
+
+### 🔄 Changed
+- Revert 'Improve performance of model conversions with large extra data' [#3576](https://github.com/GetStream/stream-chat-swift/pull/3576)
+- Expand `StreamAudioPlayer` to allow passing an `options` field to `AVURLAsset` initialiser [#3586](https://github.com/GetStream/stream-chat-swift/pull/3586)
+
+# [4.71.0](https://github.com/GetStream/stream-chat-swift/releases/tag/4.71.0)
+_January 28, 2025_
+
+## StreamChat
 ### ✅ Added
+- Expose `Event.name` to easily check which event it is [#3569](https://github.com/GetStream/stream-chat-swift/pull/3569)
+- Add support for transforming Messages, Channels and Members [#3564](https://github.com/GetStream/stream-chat-swift/pull/3564)
+   - Add `ChatClientConfig.modelsTransformer`
+   - Add `ChatMessage.replacing()`
+   - Add `ChatChannel.replacing()`
+   - Add `ChatChannelMember.replacing()`
+### 🐞 Fixed
+- Calling async `connectUser()` methods can sometimes throw `CurrentUserDoesNotExist()` unexpectedly [#3565](https://github.com/GetStream/stream-chat-swift/pull/3565)
+- Fix creating controllers from background threads leading to rare crashes [#3566](https://github.com/GetStream/stream-chat-swift/pull/3566)
+- Fix hard deleted message events not being reported in `EventsController` [#3569](https://github.com/GetStream/stream-chat-swift/pull/3569)
+- Fix hard deleting a parent message not deleting its replies [#3569](https://github.com/GetStream/stream-chat-swift/pull/3569)
+
+## StreamChatUI
+### ✅ Added
+- Add a simpler way to customize header and footer views in the Message List [#3567](https://github.com/GetStream/stream-chat-swift/pull/3567)
+  - Add `ChatMessageListVC.headerView`
+  - Add `ChatMessageListVC.footerView`
+- Make it easier to provide state handling when loading more messages [#3567](https://github.com/GetStream/stream-chat-swift/pull/3567)
+  - Add `ChatChannelVC.loadPreviousMessages()` + `ChatChannelVC.didFinishLoadingPreviousMessages(error:)`
+  - Add `ChatChannelVC.loadNextMessages()` + `ChatChannelVC.didFinishLoadingNextMessages(error:)`
+  - Add `ChatThreadVC.loadPreviousReplies()` + `ChatThreadVC.didFinishLoadingPreviousReplies(error:)`
+  - Add `ChatThreadVC.loadNextReplies()` + `ChatThreadVC.didFinishLoadingNextReplies(error:)`
+### 🐞 Fixed
+- Fix thread reply action shown when inside a Thread [#3561](https://github.com/GetStream/stream-chat-swift/pull/3561)
+- Fix reaction author's view with shrinked reaction images in iOS 18 [#3568](https://github.com/GetStream/stream-chat-swift/pull/3568)
+- Fix missing final attributes for supplementary views exception [#3570](https://github.com/GetStream/stream-chat-swift/pull/3570)
+- Fix duplicated `didReceiveEvent` inside `ChatThreadVC` [#3569](https://github.com/GetStream/stream-chat-swift/pull/3569)
+### 🔄 Changed
+- Deprecates `ChatThreadVC.channelEventsController` [#3569](https://github.com/GetStream/stream-chat-swift/pull/3569)
+
+# [4.70.0](https://github.com/GetStream/stream-chat-swift/releases/tag/4.70.0)
+_January 14, 2025_
+
+## StreamChat
+### ✅ Added
+- Use `AppSettings.fileUploadConfig` and `AppSettings.imageUploadConfig` for blocking attachment uploads [#3556](https://github.com/GetStream/stream-chat-swift/pull/3556)
+- Add `FilterKey.disabled` and `ChatChannel.isDisabled` [#3546](https://github.com/GetStream/stream-chat-swift/pull/3546)
+- Add `ImageAttachmentPayload.file` for setting `file_size` and `mime_type` for image attachments [#3548](https://github.com/GetStream/stream-chat-swift/pull/3548)
+### 🐞 Fixed
+- Remove the main thread requirement from the `DataStore` [#3541](https://github.com/GetStream/stream-chat-swift/pull/3541)
+- Refresh quoted message preview when the quoted message is deleted [#3553](https://github.com/GetStream/stream-chat-swift/pull/3553)
+### ⚡ Performance
+- Improve performance of accessing database model properties [#3534](https://github.com/GetStream/stream-chat-swift/pull/3534)
+- Improve performance of model conversions with large extra data [#3534](https://github.com/GetStream/stream-chat-swift/pull/3534)
+### 🔄 Changed
+- Deprecate `ImageAttachmentPayload.init(title:imageRemoteURL:originalWidth:originalHeight:extraData:)` in favor of `ImageAttachmentPayload.init(title:imageRemoteURL:file:originalWidth:originalHeight:extraData:)` [#3548](https://github.com/GetStream/stream-chat-swift/pull/3548)
+
+## StreamChatUI
+### 🔄 Changed
+- Set supported media types based on `AppSettings` in `ComposerVC.filePickerVC` [#3556](https://github.com/GetStream/stream-chat-swift/pull/3556)
+
+# [4.69.0](https://github.com/GetStream/stream-chat-swift/releases/tag/4.69.0)
+_December 18, 2024_
+
+## StreamChat
+### ✅ Added
+- Archiving channels for the current user [#3524](https://github.com/GetStream/stream-chat-swift/pull/3524)
+  - Add `Chat.archive(scope:)` and `Chat.unarchive(scope:)`
+  - Add `ChatChannelController.archive(scope:completion:)` and `ChatChannelController.unarchive(scope:completion:)`
+  - Add `FilterKey.archive` for filtering channel lists
+  - Add `ChatChannel.membership.archivedAt`
+  - Add `ChatChannel.isArchived`
 - Pinning channels for the current user [#3518](https://github.com/GetStream/stream-chat-swift/pull/3518)
   - Add `Chat.pin(scope:)` and `Chat.unpin(scope:)`
   - Add `ChatChannelController.pin(scope:completion:)` and `ChatChannelController.unpin(scope:completion:)`
@@ -12,6 +89,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Add `ChannelListSortingKey.pinnedAt`
   - Add `ChatChannel.membership.pinnedAt`
   - Add `ChatChannel.isPinned`
+- Add channel list filtering key: `FilterKey.members` [#3536](https://github.com/GetStream/stream-chat-swift/pull/3536)
+- Add member list filtering keys: `FilterKey.channelRole` and `FilterKey.email` [#3535](https://github.com/GetStream/stream-chat-swift/pull/3535)
+- Add member list sorting key: `ChannelMemberListSortingKey.channelRole` [#3535](https://github.com/GetStream/stream-chat-swift/pull/3535)
+### 🐞 Fixed
+- End background task before starting a new one [#3528](https://github.com/GetStream/stream-chat-swift/pull/3528)
 
 # [4.68.0](https://github.com/GetStream/stream-chat-swift/releases/tag/4.68.0)
 _December 03, 2024_

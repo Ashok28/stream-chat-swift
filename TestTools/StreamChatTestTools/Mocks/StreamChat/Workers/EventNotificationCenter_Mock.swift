@@ -1,12 +1,12 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import Foundation
 @testable import StreamChat
 
 /// Mock implementation of `EventNotificationCenter`
-final class EventNotificationCenter_Mock: EventNotificationCenter {
+final class EventNotificationCenter_Mock: EventNotificationCenter, @unchecked Sendable {
 
     override var newMessageIds: Set<MessageId> {
         newMessageIdsMock ?? super.newMessageIds

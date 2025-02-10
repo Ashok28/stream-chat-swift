@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import Foundation
@@ -56,10 +56,19 @@ final class DemoChatChannelListVC: ChatChannelListVC {
         .equal("is_cool", to: true)
     ]))
     
+    lazy var archivedChannelsQuery: ChannelListQuery = .init(filter: .and([
+        .containMembers(userIds: [currentUserId]),
+        .equal(.archived, to: true)
+    ]))
+    
     lazy var pinnedChannelsQuery: ChannelListQuery = .init(filter: .and([
         .containMembers(userIds: [currentUserId]),
         .equal(.pinned, to: true)
     ]))
+    
+    lazy var equalMembersQuery: ChannelListQuery = .init(filter:
+        .equal(.members, values: [currentUserId, "r2-d2"])
+    )
 
     var demoRouter: DemoChatChannelListRouter? {
         router as? DemoChatChannelListRouter
@@ -150,12 +159,28 @@ final class DemoChatChannelListVC: ChatChannelListVC {
             }
         )
         
+        let archivedChannelsAction = UIAlertAction(
+            title: "Archived Channels",
+            style: .default
+        ) { [weak self] _ in
+            self?.title = "Archived Channels"
+            self?.setArchivedChannelsQuery()
+        }
+        
         let pinnedChannelsAction = UIAlertAction(
             title: "Pinned Channels",
             style: .default
         ) { [weak self] _ in
             self?.title = "Pinned Channels"
             self?.setPinnedChannelsQuery()
+        }
+        
+        let equalMembersAction = UIAlertAction(
+            title: "R2-D2 Channels (Equal Members)",
+            style: .default
+        ) { [weak self] _ in
+            self?.title = "R2-D2 Channels (Equal Members)"
+            self?.setEqualMembersChannelsQuery()
         }
 
         presentAlert(
@@ -166,7 +191,9 @@ final class DemoChatChannelListVC: ChatChannelListVC {
                 hiddenChannelsAction,
                 mutedChannelsAction,
                 coolChannelsAction,
-                pinnedChannelsAction
+                pinnedChannelsAction,
+                archivedChannelsAction,
+                equalMembersAction
             ].sorted(by: { $0.title ?? "" < $1.title ?? "" }),
             preferredStyle: .actionSheet,
             sourceView: filterChannelsButton
@@ -195,8 +222,16 @@ final class DemoChatChannelListVC: ChatChannelListVC {
         replaceChannelListController(controller)
     }
     
+    func setArchivedChannelsQuery() {
+        replaceQuery(archivedChannelsQuery)
+    }
+    
     func setPinnedChannelsQuery() {
         replaceQuery(pinnedChannelsQuery)
+    }
+    
+    func setEqualMembersChannelsQuery() {
+        replaceQuery(equalMembersQuery)
     }
 
     func setInitialChannelsQuery() {

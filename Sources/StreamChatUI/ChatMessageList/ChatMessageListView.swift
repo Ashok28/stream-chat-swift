@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import StreamChat
@@ -287,6 +287,6 @@ open class ChatMessageListView: UITableView, Customizable, ComponentsProvider {
 
 // MARK: Helpers
 
-private extension CGAffineTransform {
+internal extension CGAffineTransform {
     static let mirrorY = Self(scaleX: 1, y: -1)
 }

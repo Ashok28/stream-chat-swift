@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import CoreData
@@ -22,8 +22,12 @@ final class ChannelController_Tests: XCTestCase {
     override func setUp() {
         super.setUp()
 
+        setUp(with: ChatClient_Mock.defaultMockedConfig)
+    }
+    
+    func setUp(with config: ChatClientConfig) {
         env = TestEnvironment()
-        client = ChatClient.mock
+        client = ChatClient.mock(config: config)
         channelId = ChannelId.unique
         controller = ChatChannelController(
             channelQuery: .init(cid: channelId),
@@ -1229,7 +1233,9 @@ final class ChannelController_Tests: XCTestCase {
 
     func test_deletedMessages_withVisibleForCurrentUser_messageVisibility() throws {
         // Simulate the config setting
-        client.databaseContainer.viewContext.deletedMessagesVisibility = .visibleForCurrentUser
+        var config = ChatClient_Mock.defaultMockedConfig
+        config.deletedMessagesVisibility = .visibleForCurrentUser
+        setUp(with: config)
 
         let currentUserID: UserId = .unique
 
@@ -1264,7 +1270,9 @@ final class ChannelController_Tests: XCTestCase {
 
     func test_deletedMessages_withAlwaysHidden_messageVisibility() throws {
         // Simulate the config setting
-        client.databaseContainer.viewContext.deletedMessagesVisibility = .alwaysHidden
+        var config = ChatClient_Mock.defaultMockedConfig
+        config.deletedMessagesVisibility = .alwaysHidden
+        setUp(with: config)
 
         let currentUserID: UserId = .unique
 
@@ -1299,7 +1307,9 @@ final class ChannelController_Tests: XCTestCase {
 
     func test_deletedMessages_withAlwaysVisible_messageVisibility() throws {
         // Simulate the config setting
-        client.databaseContainer.viewContext.deletedMessagesVisibility = .alwaysVisible
+        var config = ChatClient_Mock.defaultMockedConfig
+        config.deletedMessagesVisibility = .alwaysVisible
+        client.databaseContainer.viewContext.setChatClientConfig(config)
 
         let currentUserID: UserId = .unique
 
@@ -1334,7 +1344,9 @@ final class ChannelController_Tests: XCTestCase {
 
     func test_shadowedMessages_whenVisible() throws {
         // Simulate the config setting
-        client.databaseContainer.viewContext.shouldShowShadowedMessages = true
+        var config = ChatClient_Mock.defaultMockedConfig
+        config.shouldShowShadowedMessages = true
+        setUp(with: config)
 
         let currentUserID: UserId = .unique
 
@@ -2172,6 +2184,90 @@ final class ChannelController_Tests: XCTestCase {
 
         // Completion should be called with the error
         AssertAsync.willBeEqual(completionCalledError as? TestError, testError)
+    }
+    
+    // MARK: - Archiving and Unarchiving Channels
+    
+    func test_archive_callsChannelUpdater() throws {
+        let currentUserId = UserId.unique
+        client.currentUserId_mock = currentUserId
+        
+        env.memberUpdater!.partialUpdate_completion_result = .success(
+            ChatChannelMember.mock(
+                id: currentUserId,
+                archivedAt: .unique
+            )
+        )
+        let resultingError = try waitFor { done in
+            controller.archive { [callbackQueueID] error in
+                AssertTestQueue(withId: callbackQueueID)
+                done(error)
+            }
+        }
+        XCTAssertNil(resultingError)
+        XCTAssertEqual(channelId, env.memberUpdater!.partialUpdate_cid)
+        XCTAssertEqual(currentUserId, env.memberUpdater!.partialUpdate_userId)
+        XCTAssertEqual(nil, env.memberUpdater!.partialUpdate_unset)
+        XCTAssertEqual(MemberUpdatePayload(archived: true), env.memberUpdater!.partialUpdate_updates)
+    }
+    
+    func test_unarchive_callsChannelUpdater() throws {
+        let currentUserId = UserId.unique
+        client.currentUserId_mock = currentUserId
+        
+        env.memberUpdater!.partialUpdate_completion_result = .success(
+            ChatChannelMember.mock(
+                id: currentUserId,
+                archivedAt: .unique
+            )
+        )
+        let resultingError = try waitFor { done in
+            controller.unarchive { [callbackQueueID] error in
+                AssertTestQueue(withId: callbackQueueID)
+                done(error)
+            }
+        }
+        XCTAssertNil(resultingError)
+        XCTAssertEqual(channelId, env.memberUpdater!.partialUpdate_cid)
+        XCTAssertEqual(currentUserId, env.memberUpdater!.partialUpdate_userId)
+        XCTAssertEqual(["archived"], env.memberUpdater!.partialUpdate_unset)
+        XCTAssertEqual(nil, env.memberUpdater!.partialUpdate_updates)
+    }
+    
+    func test_archive_propagatesErrorFromUpdater() throws {
+        client.currentUserId_mock = .unique
+        let expectedError = TestError()
+        
+        env.memberUpdater!.partialUpdate_completion_result = .failure(expectedError)
+        let resultingError = try waitFor { done in
+            controller.archive { [callbackQueueID] error in
+                AssertTestQueue(withId: callbackQueueID)
+                done(error)
+            }
+        }
+        XCTAssertEqual(expectedError, resultingError as? TestError, resultingError?.localizedDescription ?? "")
+        XCTAssertEqual(channelId, env.memberUpdater!.partialUpdate_cid)
+        XCTAssertEqual(client.currentUserId, env.memberUpdater!.partialUpdate_userId)
+        XCTAssertEqual(nil, env.memberUpdater!.partialUpdate_unset)
+        XCTAssertEqual(MemberUpdatePayload(archived: true), env.memberUpdater!.partialUpdate_updates)
+    }
+    
+    func test_unarchive_propagatesErrorFromUpdater() throws {
+        client.currentUserId_mock = .unique
+        let expectedError = TestError()
+        
+        env.memberUpdater!.partialUpdate_completion_result = .failure(expectedError)
+        let resultingError = try waitFor { done in
+            controller.unarchive { [callbackQueueID] error in
+                AssertTestQueue(withId: callbackQueueID)
+                done(error)
+            }
+        }
+        XCTAssertEqual(expectedError, resultingError as? TestError, resultingError?.localizedDescription ?? "")
+        XCTAssertEqual(channelId, env.memberUpdater!.partialUpdate_cid)
+        XCTAssertEqual(client.currentUserId, env.memberUpdater!.partialUpdate_userId)
+        XCTAssertEqual(["archived"], env.memberUpdater!.partialUpdate_unset)
+        XCTAssertEqual(nil, env.memberUpdater!.partialUpdate_updates)
     }
 
     // MARK: - Deleting channel
@@ -3434,7 +3530,10 @@ final class ChannelController_Tests: XCTestCase {
     func test_createNewMessage_sendsNewMessagePendingEvent() throws {
         let exp = expectation(description: "should complete create new message")
 
-        let mockedEventNotificationCenter = EventNotificationCenter_Mock(database: .init(kind: .inMemory))
+        let mockedEventNotificationCenter = EventNotificationCenter_Mock(database: .init(
+            kind: .inMemory,
+            chatClientConfig: .init(apiKeyString: .unique)
+        ))
         client.mockedEventNotificationCenter = mockedEventNotificationCenter
 
         controller.createNewMessage(
@@ -3449,6 +3548,45 @@ final class ChannelController_Tests: XCTestCase {
 
         let event = try XCTUnwrap(mockedEventNotificationCenter.mock_process.calls.first?.0.first)
         XCTAssertTrue(event is NewMessagePendingEvent)
+    }
+
+    func test_createNewMessage_whenMessageTransformerIsProvided_callsChannelUpdaterWithTransformedValues() throws {
+        class MockTransformer: StreamModelsTransformer {
+            var mockTransformedMessage = NewMessageTransformableInfo(
+                text: "transformed",
+                attachments: [.mockFile],
+                extraData: ["transformed": true]
+            )
+            func transform(newMessageInfo: NewMessageTransformableInfo) -> NewMessageTransformableInfo {
+                mockTransformedMessage
+            }
+        }
+
+        let transformer = MockTransformer()
+        var config = ChatClientConfig(apiKeyString: .unique)
+        config.modelsTransformer = transformer
+        client = .mock(config: config)
+        controller = ChatChannelController(
+            channelQuery: .init(cid: channelId),
+            channelListQuery: nil,
+            client: client,
+            environment: env.environment
+        )
+
+        let exp = expectation(description: "should complete create new message")
+
+        controller.createNewMessage(
+            text: .unique
+        ) { _ in
+            exp.fulfill()
+        }
+
+        env.channelUpdater?.createNewMessage_completion?(.success(.unique))
+        wait(for: [exp], timeout: defaultTimeout)
+
+        XCTAssertEqual(env.channelUpdater?.createNewMessage_text, transformer.mockTransformedMessage.text)
+        XCTAssertEqual(env.channelUpdater?.createNewMessage_attachments, transformer.mockTransformedMessage.attachments)
+        XCTAssertEqual(env.channelUpdater?.createNewMessage_extraData, transformer.mockTransformedMessage.extraData)
     }
 
     // MARK: - Create system message
@@ -5017,6 +5155,7 @@ final class ChannelController_Tests: XCTestCase {
                 done(error)
             }
         }
+        XCTAssertNil(resultingError)
         XCTAssertEqual(channelId, env.memberUpdater!.partialUpdate_cid)
         XCTAssertEqual(currentUserId, env.memberUpdater!.partialUpdate_userId)
         XCTAssertEqual(nil, env.memberUpdater!.partialUpdate_unset)
@@ -5039,6 +5178,7 @@ final class ChannelController_Tests: XCTestCase {
                 done(error)
             }
         }
+        XCTAssertNil(resultingError)
         XCTAssertEqual(channelId, env.memberUpdater!.partialUpdate_cid)
         XCTAssertEqual(currentUserId, env.memberUpdater!.partialUpdate_userId)
         XCTAssertEqual(["pinned"], env.memberUpdater!.partialUpdate_unset)

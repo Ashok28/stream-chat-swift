@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import CoreData
@@ -373,6 +373,12 @@ extension ClientError {
     final class AttachmentDoesNotExist: ClientError {
         init(id: AttachmentId) {
             super.init("There is no `AttachmentDTO` instance in the DB matching id: \(id).")
+        }
+    }
+    
+    final class AttachmentUploadBlocked: ClientError {
+        init(id: AttachmentId, attachmentType: AttachmentType, pathExtension: String) {
+            super.init("`AttachmentDTO` with \(id) and type \(attachmentType) and path extension \(pathExtension) is blocked on the Stream dashboard.")
         }
     }
 

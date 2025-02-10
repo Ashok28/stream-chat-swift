@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 @testable import StreamChat
@@ -373,6 +373,7 @@ final class ChannelDTO_Tests: XCTestCase {
             Assert.willBeEqual(payload.channel.deletedAt, loadedChannel.deletedAt)
             Assert.willBeEqual(payload.channel.cooldownDuration, loadedChannel.cooldownDuration)
             Assert.willBeEqual(payload.channel.team!, loadedChannel.team)
+            Assert.willBeEqual(payload.channel.isDisabled, loadedChannel.isDisabled)
 
             // Config
             Assert.willBeEqual(payload.channel.config.reactionsEnabled, loadedChannel.config.reactionsEnabled)
@@ -547,7 +548,7 @@ final class ChannelDTO_Tests: XCTestCase {
 
         // Assert only 25 messages is serialized in the model
         let channel: ChatChannel? = try? database.viewContext.channel(cid: channelId)?.asModel()
-        XCTAssertEqual(channel?.latestMessages.count, 25)
+        XCTAssertEqual(channel?.latestMessages.count, database.chatClientConfig.localCaching.chatChannel.latestMessagesLimit)
     }
 
     func test_channelPayload_pinnedMessagesArePopulated() throws {
@@ -637,7 +638,7 @@ final class ChannelDTO_Tests: XCTestCase {
 
         // Assert only the 10 newest messages is serialized
         let channel: ChatChannel? = try? database.viewContext.channel(cid: channelId)?.asModel()
-        XCTAssertEqual(channel?.latestMessages.count, 10)
+        XCTAssertEqual(channel?.latestMessages.count, database.chatClientConfig.localCaching.chatChannel.latestMessagesLimit)
     }
 
     func test_channelPayload_pinnedMessagesOlderThanOldestMessageAtAreIgnored() throws {
@@ -1326,17 +1327,19 @@ final class ChannelDTO_Tests: XCTestCase {
 
     func test_asModel_populatesLatestMessage_withoutFilteringDeletedMessages() throws {
         // GIVEN
+        var config = ChatClientConfig(apiKeyString: .unique)
+        config.deletedMessagesVisibility = .visibleForCurrentUser
+        config.shouldShowShadowedMessages = true
+        config.localCaching = .init(
+            chatChannel: .init(
+                lastActiveWatchersLimit: 0,
+                lastActiveMembersLimit: 0,
+                latestMessagesLimit: 3
+            )
+        )
         database = DatabaseContainer_Spy(
             kind: .inMemory,
-            localCachingSettings: .init(
-                chatChannel: .init(
-                    lastActiveWatchersLimit: 0,
-                    lastActiveMembersLimit: 0,
-                    latestMessagesLimit: 3
-                )
-            ),
-            deletedMessagesVisibility: .visibleForCurrentUser,
-            shouldShowShadowedMessages: true
+            chatClientConfig: config
         )
 
         let currentUser: CurrentUserPayload = .dummy(userId: .unique, role: .admin)
@@ -1467,6 +1470,30 @@ final class ChannelDTO_Tests: XCTestCase {
         // 3rd level of depth is not mapped
         XCTAssertNil(quoted3Message)
     }
+
+    func test_asModel_whenModelTransformerProvided_transformsValues() throws {
+        // GIVEN
+        let cid: ChannelId = .unique
+        let channelPayload = dummyPayload(with: cid)
+
+        let transformer = CustomChannelTransformer()
+        var config = ChatClientConfig(apiKeyString: .unique)
+        config.modelsTransformer = transformer
+        database = DatabaseContainer_Spy(
+            kind: .inMemory,
+            chatClientConfig: config
+        )
+        
+        try database.writeSynchronously { session in
+            try session.saveChannel(payload: channelPayload)
+        }
+        
+        // WHEN
+        let channel = try XCTUnwrap(database.viewContext.channel(cid: cid)?.asModel())
+        
+        // THEN
+        XCTAssertEqual(channel.cid, transformer.mockTransformedChannel.cid)
+    }
 }
 
 private extension ChannelDTO_Tests {
@@ -1484,5 +1511,12 @@ private extension ChannelDTO_Tests {
 
     func channel(with cid: ChannelId) throws -> ChatChannel {
         try XCTUnwrap(database.viewContext.channel(cid: cid)).asModel()
+    }
+}
+
+private class CustomChannelTransformer: StreamModelsTransformer {
+    var mockTransformedChannel: ChatChannel = .mock(cid: .init(type: .messaging, id: "transformed"))
+    func transform(channel: ChatChannel) -> ChatChannel {
+        mockTransformedChannel
     }
 }

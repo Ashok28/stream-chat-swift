@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 @testable import StreamChat
@@ -11,6 +11,11 @@ final class Filter_Tests: XCTestCase {
         var filter: Filter<FilterTestScope> = .equal(.testKey, to: "equal value")
         XCTAssertEqual(filter.key, FilterKey<FilterTestScope, String>.testKey.rawValue)
         XCTAssertEqual(filter.value as? String, "equal value")
+        XCTAssertEqual(filter.operator, FilterOperator.equal.rawValue)
+        
+        filter = .equal(.testKey, values: ["eq value 1", "eq value 2"])
+        XCTAssertEqual(filter.key, FilterKey<FilterTestScope, String>.testKey.rawValue)
+        XCTAssertEqual(filter.value as? [String], ["eq value 1", "eq value 2"])
         XCTAssertEqual(filter.operator, FilterOperator.equal.rawValue)
 
         filter = .notEqual(.testKey, to: "not equal value")
@@ -92,6 +97,11 @@ final class Filter_Tests: XCTestCase {
         // Test in filter
         filter = .init(operator: FilterOperator.in.rawValue, key: "test_key", value: [1, 2, 3], isCollectionFilter: false)
         XCTAssertEqual(filter.serialized, #"{"test_key":{"$in":[1,2,3]}}"#)
+        XCTAssertEqual(jsonString.deserializeFilter(), filter)
+        
+        // Test eq values filter
+        filter = .init(operator: FilterOperator.equal.rawValue, key: "test_key", value: [1, 2, 3], isCollectionFilter: false)
+        XCTAssertEqual(filter.serialized, #"{"test_key":{"$eq":[1,2,3]}}"#)
         XCTAssertEqual(jsonString.deserializeFilter(), filter)
 
         // Test group filter

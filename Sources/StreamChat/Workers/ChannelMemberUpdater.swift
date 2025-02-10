@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import Foundation
@@ -61,6 +61,33 @@ class ChannelMemberUpdater: Worker {
     ) async throws {
         try await withCheckedThrowingContinuation { continuation in
             pinMemberChannel(isPinned, userId: userId, cid: cid) { error in
+                continuation.resume(with: error)
+            }
+        }
+    }
+    
+    func archiveMemberChannel(
+        _ isArchived: Bool,
+        userId: UserId,
+        cid: ChannelId,
+        completion: @escaping (Error?) -> Void
+    ) {
+        partialUpdate(
+            userId: userId,
+            in: cid,
+            updates: isArchived ? MemberUpdatePayload(archived: true) : nil,
+            unset: isArchived ? nil : [MemberUpdatePayload.CodingKeys.archived.rawValue],
+            completion: { completion($0.error) }
+        )
+    }
+    
+    func archiveMemberChannel(
+        _ isArchived: Bool,
+        userId: UserId,
+        cid: ChannelId
+    ) async throws {
+        try await withCheckedThrowingContinuation { continuation in
+            archiveMemberChannel(isArchived, userId: userId, cid: cid) { error in
                 continuation.resume(with: error)
             }
         }

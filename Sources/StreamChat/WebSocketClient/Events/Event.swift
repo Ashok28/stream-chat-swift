@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import Foundation
@@ -7,7 +7,7 @@ import Foundation
 /// An `Event` object representing an event in the chat system.
 public protocol Event {}
 
-extension Event {
+public extension Event {
     var name: String {
         String(describing: Self.self).replacingOccurrences(of: "DTO", with: "")
     }

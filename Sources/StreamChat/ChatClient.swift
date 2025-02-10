@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import Combine
@@ -339,7 +339,7 @@ public class ChatClient {
                 continuation.resume(with: error)
             }
         }
-        return try await makeConnectedUser()
+        return try await retrieveConnectedUser()
     }
 
     /// Connects the client with the given user.
@@ -391,7 +391,7 @@ public class ChatClient {
                 continuation.resume(with: error)
             }
         }
-        return try await makeConnectedUser()
+        return try await retrieveConnectedUser()
     }
 
     /// Connects a guest user.
@@ -423,7 +423,7 @@ public class ChatClient {
                 continuation.resume(with: error)
             }
         }
-        return try await makeConnectedUser()
+        return try await retrieveConnectedUser()
     }
 
     /// Connects an anonymous user
@@ -447,7 +447,7 @@ public class ChatClient {
                 continuation.resume(with: error)
             }
         }
-        return try await makeConnectedUser()
+        return try await retrieveConnectedUser()
     }
     
     /// Sets the user token to the client, this method is only needed to perform API calls
@@ -578,6 +578,8 @@ public class ChatClient {
             case let .success(payload):
                 let appSettings = payload.asModel()
                 self?.appSettings = appSettings
+                try? self?.backgroundWorker(of: AttachmentQueueUploader.self)
+                    .setAppSettings(appSettings)
                 completion?(.success(appSettings))
             case let .failure(error):
                 completion?(.failure(error))
@@ -614,6 +616,8 @@ public class ChatClient {
                 attachmentPostProcessor: config.uploadedAttachmentPostProcessor
             )
         ]
+        try? backgroundWorker(of: AttachmentQueueUploader.self)
+            .setAppSettings(appSettings)
     }
 
     func completeConnectionIdWaiters(connectionId: String?) {
@@ -691,6 +695,15 @@ extension ChatClient: ConnectionDetailsProviderDelegate {
 
     func provideConnectionId(timeout: TimeInterval = 10, completion: @escaping (Result<ConnectionId, Error>) -> Void) {
         connectionRepository.provideConnectionId(timeout: timeout, completion: completion)
+    }
+
+    @discardableResult
+    func provideConnectionId(timeout: TimeInterval = 10) async throws -> ConnectionId {
+        try await withCheckedThrowingContinuation { continuation in
+            provideConnectionId(timeout: timeout) { result in
+                continuation.resume(with: result)
+            }
+        }
     }
 }
 

@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import Foundation
@@ -26,7 +26,7 @@ import Foundation
         self.channelQuery = channelQuery
         self.channelUpdater = channelUpdater
         self.client = client
-        dataStore = DataStore(database: client.databaseContainer)
+        dataStore = DataStore(client: client)
         self.environment = environment
         self.memberSorting = memberSorting
         self.messageOrder = messageOrder

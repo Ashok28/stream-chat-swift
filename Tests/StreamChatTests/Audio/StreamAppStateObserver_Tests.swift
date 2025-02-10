@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import Foundation
@@ -90,7 +90,7 @@ final class StreamAppStateObserver_Tests: XCTestCase {
     }
 }
 
-private final class StubNotificationCenter: NotificationCenter {
+private final class StubNotificationCenter: NotificationCenter, @unchecked Sendable {
     struct ObserverRecord {
         var observer: AnyObject
         var selector: Selector

@@ -8,13 +8,13 @@
 </p>
 <p align="center">
   <a href="https://getstream.io/chat/docs/sdk/ios/"><img src="https://img.shields.io/badge/iOS-13%2B-lightblue" /></a>
-  <a href="https://swift.org"><img src="https://img.shields.io/badge/Swift-5.6%2B-orange.svg" /></a>
+  <a href="https://swift.org"><img src="https://img.shields.io/badge/Swift-5.7%2B-orange.svg" /></a>
   <a href="https://github.com/GetStream/stream-chat-swift/actions"><img src="https://github.com/GetStream/stream-chat-swift/actions/workflows/cron-checks.yml/badge.svg" /></a>
   <a href="https://sonarcloud.io/summary/new_code?id=GetStream_stream-chat-swift"><img src="https://sonarcloud.io/api/project_badges/measure?project=GetStream_stream-chat-swift&metric=coverage" /></a>
 </p>
 <p align="center">
-  <img id="stream-chat-label" alt="StreamChat" src="https://img.shields.io/badge/StreamChat-7.08%20MB-blue"/>
-  <img id="stream-chat-ui-label" alt="StreamChatUI" src="https://img.shields.io/badge/StreamChatUI-4.96%20MB-blue"/>
+  <img id="stream-chat-label" alt="StreamChat" src="https://img.shields.io/badge/StreamChat-7.11%20MB-blue"/>
+  <img id="stream-chat-ui-label" alt="StreamChatUI" src="https://img.shields.io/badge/StreamChatUI-4.98%20MB-blue"/>
 </p>
 
 This is the official iOS SDK for [Stream Chat](https://getstream.io/chat/sdk/ios/), a service for building chat and messaging applications. This library includes both a low-level SDK and a set of reusable UI components.
@@ -39,14 +39,14 @@ The **StreamChatSwiftUI SDK** is our UI SDK for SwiftUI components. If your appl
 - **Familiar behavior**: The UI elements are good platform citizens and behave like native elements; they respect `tintColor`, `layoutMargins`, light/dark mode, dynamic font sizes, etc.
 - **Swift native API:** Uses Swift's powerful language features to make the SDK usage easy and type-safe.
 - `UIKit` and `SwiftUI` SDKs use native patterns and paradigms from respective UI frameworks: The API follows the design of native system SDKs. It makes integration with your existing code easy and familiar.
-  - `UIKit` SDK is part of this repository whereas `SwiftUI` SDK is available [here](https://github.com/GetStream/stream-chat-swiftui). 
+  - `UIKit` SDK is part of this repository whereas `SwiftUI` SDK is available [here](https://github.com/GetStream/stream-chat-swiftui).
 - **First-class support for `Combine` and `Structured Concurrency`**: Refer to our getting started guides for [Combine](https://getstream.io/chat/docs/sdk/ios/combine/) and [Structured Concurrency](https://getstream.io/chat/docs/sdk/ios/client/state-layer/state-layer-overview/).
 - **Fully open-source implementation:** You have access to the complete source code of the SDK here on GitHub.
 - **Supports iOS 13+:** We proudly support older versions of iOS, so your app can stay available to almost everyone.
 
 ## **Quick Links**
 
-- [iOS/Swift Chat Tutorial](https://getstream.io/tutorials/ios-chat/): Learn how to use the SDK by following our simple tutorial with UIKit (or [SwiftUI](https://getstream.io/tutorials/swiftui-chat/)).
+- [UIKit Chat Tutorial](https://getstream.io/tutorials/ios-uikit-chat/): Learn how to use the SDK by following our simple tutorial with UIKit (or [SwiftUI](https://getstream.io/tutorials/swiftui-chat/)).
 - [Register](https://getstream.io/chat/trial/): Register to get an API key for Stream Chat.
 - [Installation](https://getstream.io/chat/docs/sdk/ios/basics/integration): Learn more about how to install the SDK using SPM or CocoaPods.
   - Do you want to use Module Stable XCFrameworks? [Check this out](https://getstream.io/chat/docs/sdk/ios/basics/integration#xcframeworks)
@@ -121,15 +121,17 @@ Check out our current openings and apply via [Stream's website](https://getstrea
   </tr>
   <tr>
     <td> A list of message in a channel </td>
-    <th rowspan="9"><img src="ReadmeAssets/Message_List_Bezel.png?raw=true" width="80%" /></th>
+    <th rowspan="11"><img src="ReadmeAssets/Message_List_Bezel.png?raw=true" width="80%" /></th>
   </tr>
-  <tr> <td> Photo preview </td> </tr>
+  <tr> <td> Photo and Video preview </td> </tr>
   <tr> <td> Message reactions </td> </tr>
   <tr> <td> Message grouping based on the send time </td> </tr>
   <tr> <td> Link preview </td> </tr>
   <tr> <td> Inline replies </td> </tr>
   <tr> <td> Message threads </td> </tr>
   <tr> <td> GIPHY support </td> </tr>
+  <tr> <td> Polls support </td> </tr>
+  <tr> <td> Async voice messages </td> </tr>
   <tr><td> </td> </tr>
   </tr>
 </table>
@@ -145,12 +147,15 @@ Check out our current openings and apply via [Stream's website](https://getstrea
   </tr>
   <tr>
     <td> Support for multiline text, expands and shrinks as needed </td>
-    <th rowspan="6"><img src="ReadmeAssets/Message_Composer_Bezels.png?raw=true" width="80%" /></th>
+    <th rowspan="9"><img src="ReadmeAssets/Message_Composer_Bezels.png?raw=true" width="80%" /></th>
   </tr>
-  <tr> <td> Image and file attachments</td> </tr>
+  <tr> <td> Image, video and file attachments</td> </tr>
   <tr> <td> Replies to messages </td> </tr>
   <tr> <td> Tagging of users </td> </tr>
   <tr> <td> Chat commands like mute, ban, giphy </td> </tr>
+  <tr> <td> Creation of polls </td> </tr>
+  <tr> <td> Link previews </td> </tr>
+  <tr> <td> Recording async voice messages </td> </tr>
   <tr><td> </td> </tr>
   </tr>
 </table>

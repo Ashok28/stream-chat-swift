@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import CoreData
@@ -50,6 +50,9 @@ public struct ChatChannel {
     ///
     public let isFrozen: Bool
     
+    /// Returns `true` if the channel is disabled.
+    public let isDisabled: Bool
+    
     /// Returns `true` if the channel is blocked.
     ///
     /// It's not possible to send new messages to a blocked channel.
@@ -75,6 +78,11 @@ public struct ChatChannel {
 
     /// If the current user is a member of the channel, this variable contains the details about the membership.
     public let membership: ChatChannelMember?
+    
+    /// Returns `true`, if the channel is archived.
+    public var isArchived: Bool {
+        membership?.archivedAt != nil
+    }
     
     /// Returns `true`, if the channel is pinned.
     public var isPinned: Bool {
@@ -169,6 +177,7 @@ public struct ChatChannel {
         config: ChannelConfig = .init(),
         ownCapabilities: Set<ChannelCapability> = [],
         isFrozen: Bool = false,
+        isDisabled: Bool = false,
         isBlocked: Bool = false,
         lastActiveMembers: [ChatChannelMember],
         membership: ChatChannelMember? = nil,
@@ -199,6 +208,7 @@ public struct ChatChannel {
         self.config = config
         self.ownCapabilities = ownCapabilities
         self.isFrozen = isFrozen
+        self.isDisabled = isDisabled
         self.isBlocked = isBlocked
         self.membership = membership
         self.team = team
@@ -217,6 +227,47 @@ public struct ChatChannel {
         self.pinnedMessages = pinnedMessages
         self.muteDetails = muteDetails
         self.previewMessage = previewMessage
+    }
+
+    /// Returns a new `ChatChannel` with the provided data replaced.
+    public func replacing(
+        name: String?,
+        imageURL: URL?,
+        extraData: [String: RawJSON]?
+    ) -> ChatChannel {
+        .init(
+            cid: cid,
+            name: name,
+            imageURL: imageURL,
+            lastMessageAt: lastMessageAt,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            truncatedAt: truncatedAt,
+            isHidden: isHidden,
+            createdBy: createdBy,
+            config: config,
+            ownCapabilities: ownCapabilities,
+            isFrozen: isFrozen,
+            isDisabled: isDisabled,
+            isBlocked: isBlocked,
+            lastActiveMembers: lastActiveMembers,
+            membership: membership,
+            currentlyTypingUsers: currentlyTypingUsers,
+            lastActiveWatchers: lastActiveWatchers,
+            team: team,
+            unreadCount: unreadCount,
+            watcherCount: watcherCount,
+            memberCount: memberCount,
+            reads: reads,
+            cooldownDuration: cooldownDuration,
+            extraData: extraData ?? [:],
+            latestMessages: latestMessages,
+            lastMessageFromCurrentUser: lastMessageFromCurrentUser,
+            pinnedMessages: pinnedMessages,
+            muteDetails: muteDetails,
+            previewMessage: previewMessage
+        )
     }
 }
 
@@ -257,6 +308,7 @@ extension ChatChannel: Hashable {
         guard lhs.extraData == rhs.extraData else { return false }
         guard lhs.imageURL == rhs.imageURL else { return false }
         guard lhs.isFrozen == rhs.isFrozen else { return false }
+        guard lhs.isDisabled == rhs.isDisabled else { return false }
         guard lhs.isHidden == rhs.isHidden else { return false }
         guard lhs.memberCount == rhs.memberCount else { return false }
         guard lhs.membership == rhs.membership else { return false }

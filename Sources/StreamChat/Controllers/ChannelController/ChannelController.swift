@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import CoreData
@@ -372,6 +372,51 @@ public class ChatChannelController: DataController, DelegateCallable, DataStoreP
             }
         }
     }
+    
+    /// Archives the channel with the specified scope.
+    ///
+    /// - Important: Only archiving the channel for me is supported.
+    /// - SeeAlso: You can retrieve the list of archived channels with ``FilterKey/archived`` filter.
+    ///
+    /// - Parameters:
+    ///   - scope: The scope of the archiving action. Default is archiving for the current user only.
+    ///   - completion: The completion. Will be called on a **callbackQueue** when the network request is finished.
+    /// If request fails, the completion will be called with an error.
+    public func archive(scope: ChannelArchivingScope = .me, completion: ((Error?) -> Void)? = nil) {
+        guard let cid, isChannelAlreadyCreated, let userId = client.currentUserId else {
+            channelModificationFailed(completion)
+            return
+        }
+        switch scope {
+        case .me:
+            channelMemberUpdater.archiveMemberChannel(true, userId: userId, cid: cid) { error in
+                self.callback {
+                    completion?(error)
+                }
+            }
+        }
+    }
+    
+    /// Unarchives the channel with the specified scope.
+    ///
+    /// - Parameters:
+    ///   - scope: The scope of the unarchiving action. The default scope is unarchived only for me.
+    ///   - completion: The completion. Will be called on a **callbackQueue** when the network request is finished.
+    /// If request fails, the completion will be called with an error.
+    public func unarchive(scope: ChannelArchivingScope = .me, completion: ((Error?) -> Void)? = nil) {
+        guard let cid, isChannelAlreadyCreated, let userId = client.currentUserId else {
+            channelModificationFailed(completion)
+            return
+        }
+        switch scope {
+        case .me:
+            channelMemberUpdater.archiveMemberChannel(false, userId: userId, cid: cid) { error in
+                self.callback {
+                    completion?(error)
+                }
+            }
+        }
+    }
 
     /// Delete the channel this controller manages.
     /// - Parameters:
@@ -718,17 +763,26 @@ public class ChatChannelController: DataController, DelegateCallable, DataStoreP
         extraData: [String: RawJSON] = [:],
         completion: ((Result<MessageId, Error>) -> Void)? = nil
     ) {
+        var transformableInfo = NewMessageTransformableInfo(
+            text: text,
+            attachments: attachments,
+            extraData: extraData
+        )
+        if let transformer = client.config.modelsTransformer {
+            transformableInfo = transformer.transform(newMessageInfo: transformableInfo)
+        }
+
         createNewMessage(
             messageId: messageId,
-            text: text,
+            text: transformableInfo.text,
             pinning: pinning,
             isSilent: isSilent,
-            attachments: attachments,
+            attachments: transformableInfo.attachments,
             mentionedUserIds: mentionedUserIds,
             quotedMessageId: quotedMessageId,
             skipPush: skipPush,
             skipEnrichUrl: skipEnrichUrl,
-            extraData: extraData,
+            extraData: transformableInfo.extraData,
             poll: nil,
             completion: completion
         )
@@ -1593,7 +1647,9 @@ private extension ChatChannelController {
             let observer = BackgroundEntityDatabaseObserver(
                 database: self.client.databaseContainer,
                 fetchRequest: ChannelDTO.fetchRequest(for: cid),
-                itemCreator: { try $0.asModel() as ChatChannel }
+                itemCreator: {
+                    try $0.asModel() as ChatChannel
+                }
             ).onChange { [weak self] change in
                 self?.delegateCallback { [weak self] in
                     guard let self = self else {
@@ -1625,17 +1681,8 @@ private extension ChatChannelController {
             }
             guard let cid = self.cid else { return nil }
             let sortAscending = self.messageOrdering == .topToBottom ? false : true
-            var deletedMessageVisibility: ChatClientConfig.DeletedMessageVisibility?
-            var shouldShowShadowedMessages: Bool?
-            self.client.databaseContainer.viewContext.performAndWait { [weak self] in
-                guard let self = self else {
-                    log.warning("Callback called while self is nil")
-                    return
-                }
-                deletedMessageVisibility = self.client.databaseContainer.viewContext.deletedMessagesVisibility
-                shouldShowShadowedMessages = self.client.databaseContainer.viewContext.shouldShowShadowedMessages
-            }
-
+            let deletedMessageVisibility = client.config.deletedMessagesVisibility
+            let shouldShowShadowedMessages = client.config.shouldShowShadowedMessages
             let pageSize = channelQuery.pagination?.pageSize ?? .messagesPageSize
             let observer = BackgroundListDatabaseObserver(
                 database: client.databaseContainer,
@@ -1643,10 +1690,12 @@ private extension ChatChannelController {
                     for: cid,
                     pageSize: pageSize,
                     sortAscending: sortAscending,
-                    deletedMessagesVisibility: deletedMessageVisibility ?? .visibleForCurrentUser,
-                    shouldShowShadowedMessages: shouldShowShadowedMessages ?? false
+                    deletedMessagesVisibility: deletedMessageVisibility,
+                    shouldShowShadowedMessages: shouldShowShadowedMessages
                 ),
-                itemCreator: { try $0.asModel() as ChatMessage },
+                itemCreator: {
+                    try $0.asModel() as ChatMessage
+                },
                 itemReuseKeyPaths: (\ChatMessage.id, \MessageDTO.id)
             )
             observer.onDidChange = { [weak self] changes in

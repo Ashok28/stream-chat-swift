@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import CoreData
@@ -216,6 +216,9 @@ class MessageRepository {
 
             if messageDTO.isHardDeleted {
                 session.delete(message: deletedMessage)
+                messageDTO.replies.forEach {
+                    session.delete(message: $0)
+                }
             }
         }, completion: {
             completion?($0)
@@ -265,8 +268,9 @@ class MessageRepository {
     ) {
         let context = database.backgroundReadOnlyContext
         context.perform {
-            let deletedMessagesVisibility = context.deletedMessagesVisibility ?? .alwaysVisible
-            let shouldShowShadowedMessages = context.shouldShowShadowedMessages ?? true
+            let clientConfig = context.chatClientConfig
+            let deletedMessagesVisibility = clientConfig?.deletedMessagesVisibility ?? .alwaysVisible
+            let shouldShowShadowedMessages = clientConfig?.shouldShowShadowedMessages ?? false
             do {
                 let resultId = try MessageDTO.loadMessage(
                     before: messageId,

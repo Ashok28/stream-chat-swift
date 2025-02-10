@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 @testable import StreamChat
@@ -191,6 +191,19 @@ final class ChatMessageActionsVC_Tests: XCTestCase {
             state: .remoteDataFetched
         )
 
+        vc.channel = .mock(cid: .unique, ownCapabilities: [.sendReply])
+
+        XCTAssertFalse(vc.messageActions.contains(where: { $0 is ThreadReplyActionItem }))
+    }
+
+    func test_messageActions_whenSendReply_messageIsNotPartOfThread_alreadyInsideThread_doesNotContainThreadReplyAction() {
+        chatMessageController.simulateInitial(
+            message: ChatMessage.mock(parentMessageId: nil),
+            replies: [],
+            state: .remoteDataFetched
+        )
+
+        vc.isInsideThread = true
         vc.channel = .mock(cid: .unique, ownCapabilities: [.sendReply])
 
         XCTAssertFalse(vc.messageActions.contains(where: { $0 is ThreadReplyActionItem }))

@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import Foundation
@@ -51,6 +51,7 @@ class IOSBackgroundTaskScheduler: BackgroundTaskScheduler {
     }
 
     func beginTask(expirationHandler: (() -> Void)?) -> Bool {
+        endTask()
         activeBackgroundTask = app?.beginBackgroundTask { [weak self] in
             expirationHandler?()
             self?.endTask()

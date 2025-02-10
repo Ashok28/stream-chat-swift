@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import CoreData
@@ -88,11 +88,14 @@ extension PollDTO {
     func asModel() throws -> Poll {
         try isNotDeleted()
         
-        var extraData: [String: RawJSON] = [:]
-        if let custom,
-           !custom.isEmpty,
-           let decoded = try? JSONDecoder.default.decode([String: RawJSON].self, from: custom) {
-            extraData = decoded
+        let extraData: [String: RawJSON]
+        do {
+            extraData = try JSONDecoder.stream.decodeRawJSON(from: custom)
+        } catch {
+            log.error(
+                "Failed to decode extra data for poll with id: <\(id)>, using default value instead. Error: \(error)"
+            )
+            extraData = [:]
         }
         
         let optionsArray = (options.array as? [PollOptionDTO]) ?? []
@@ -152,13 +155,18 @@ extension NSManagedObjectContext {
         pollDto.name = payload.name
         pollDto.updatedAt = payload.updatedAt.bridgeDate
         pollDto.voteCount = payload.voteCount
-        pollDto.custom = try JSONEncoder.default.encode(payload.custom)
         pollDto.voteCountsByOption = payload.voteCountsByOption
         pollDto.isClosed = payload.isClosed ?? false
         if let maxVotesAllowed = payload.maxVotesAllowed {
             pollDto.maxVotesAllowed = NSNumber(value: maxVotesAllowed)
         }
         pollDto.votingVisibility = payload.votingVisibility
+        
+        if let custom = payload.custom, !custom.isEmpty {
+            pollDto.custom = try JSONEncoder.default.encode(custom)
+        } else {
+            pollDto.custom = nil
+        }
         
         if let userPayload = payload.createdBy {
             pollDto.createdBy = try saveUser(payload: userPayload, query: nil, cache: cache)

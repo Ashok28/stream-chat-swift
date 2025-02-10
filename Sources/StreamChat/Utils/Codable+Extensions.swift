@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import Foundation
@@ -17,10 +17,16 @@ final class StreamJSONDecoder: JSONDecoder, @unchecked Sendable {
         let dateCache = NSCache<NSString, NSDate>()
         dateCache.countLimit = 5000 // We cache at most 5000 dates, which gives good enough performance
 
-        self.init(dateFormatter: iso8601formatter, dateCache: dateCache)
+        self.init(
+            dateFormatter: iso8601formatter,
+            dateCache: dateCache
+        )
     }
 
-    init(dateFormatter: ISO8601DateFormatter, dateCache: NSCache<NSString, NSDate>) {
+    init(
+        dateFormatter: ISO8601DateFormatter,
+        dateCache: NSCache<NSString, NSDate>
+    ) {
         iso8601formatter = dateFormatter
         self.dateCache = dateCache
 
@@ -47,6 +53,15 @@ final class StreamJSONDecoder: JSONDecoder, @unchecked Sendable {
             // Fail
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date: \(dateString)")
         }
+    }
+}
+
+extension StreamJSONDecoder {
+    /// A convenience method returning RawJSON dictionary.
+    func decodeRawJSON(from data: Data?) throws -> [String: RawJSON] {
+        guard let data, !data.isEmpty else { return [:] }
+        let rawJSON = try decode([String: RawJSON].self, from: data)
+        return rawJSON
     }
 }
 

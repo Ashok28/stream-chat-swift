@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import Foundation
@@ -51,7 +51,13 @@ extension Filter where Scope == ChannelListFilterScope {
         }
 
         switch op {
-        case .equal, .notEqual, .greater, .greaterOrEqual, .less, .lessOrEqual:
+        case .equal:
+            if mappedValue is [FilterValue] {
+                return collectionPredicate(op)
+            } else {
+                return comparingPredicate(op)
+            }
+        case .notEqual, .greater, .greaterOrEqual, .less, .lessOrEqual:
             return comparingPredicate(op)
         case .in, .notIn, .autocomplete, .contains, .exists:
             return collectionPredicate(op)
@@ -164,6 +170,19 @@ extension Filter where Scope == ChannelListFilterScope {
                 }
             )
 
+        case .equal where mappedValue is [FilterValue]:
+            guard let filterArray = mappedArrayValue else {
+                return nil
+            }
+            return NSCompoundPredicate(
+                andPredicateWithSubpredicates: filterArray.map { subValue in
+                    NSPredicate(
+                        format: "%@ IN %K",
+                        argumentArray: [subValue, keyPathString]
+                    )
+                }
+            )
+            
         case .notIn where mappedValue is [FilterValue]:
             guard let filterArray = mappedArrayValue else {
                 return nil

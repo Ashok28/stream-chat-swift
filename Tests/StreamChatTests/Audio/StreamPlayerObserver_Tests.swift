@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import AVFoundation
@@ -102,7 +102,7 @@ extension StreamPlayerObserver_Tests {
         }
     }
 
-    private class MockNotificationCenter: NotificationCenter {
+    private class MockNotificationCenter: NotificationCenter, @unchecked Sendable {
         private(set) var addObserverWasCalledWith: (
             name: NSNotification.Name?,
             obj: Any?,

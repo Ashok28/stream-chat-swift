@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import StreamChat
@@ -17,6 +17,13 @@ class DemoChatThreadVC: ChatThreadVC, CurrentChatUserControllerDelegate {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
+    lazy var loadingViewIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .medium)
+        indicator.frame = .init(x: 0, y: 0, width: 50, height: 50)
+        indicator.startAnimating()
+        return indicator
+    }()
 
     var thread: ChatThread?
 
@@ -61,5 +68,36 @@ class DemoChatThreadVC: ChatThreadVC, CurrentChatUserControllerDelegate {
                 }
             })
         ])
+    }
+
+    // MARK: - Dismissing the thread if the root message was hard deleted.
+
+    override func eventsController(_ controller: EventsController, didReceiveEvent event: any Event) {
+        super.eventsController(controller, didReceiveEvent: event)
+
+        // Dismiss the thread if the root message was hard deleted.
+        if let event = event as? MessageDeletedEvent, event.isHardDelete, event.message.id == messageController.messageId {
+            navigationController?.popViewController(animated: true)
+        }
+    }
+
+    // MARK: - Loading previous and next messages state handling.
+
+    override func loadPreviousReplies(completion: @escaping (Error?) -> Void) {
+        messageListVC.headerView = loadingViewIndicator
+        super.loadPreviousReplies(completion: completion)
+    }
+
+    override func didFinishLoadingPreviousReplies(with error: Error?) {
+        messageListVC.headerView = nil
+    }
+
+    override func loadNextReplies(completion: @escaping (Error?) -> Void) {
+        messageListVC.footerView = loadingViewIndicator
+        super.loadNextReplies(completion: completion)
+    }
+
+    override func didFinishLoadingNextReplies(with error: Error?) {
+        messageListVC.footerView = nil
     }
 }

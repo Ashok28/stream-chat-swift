@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import CoreData
@@ -24,6 +24,7 @@ class MemberDTO: NSManagedObject {
     @NSManaged var inviteRejectedAt: DBDate?
     @NSManaged var isInvited: Bool
     
+    @NSManaged var archivedAt: DBDate?
     @NSManaged var pinnedAt: DBDate?
 
     @NSManaged var extraData: Data?
@@ -132,6 +133,7 @@ extension NSManagedObjectContext {
         dto.isInvited = payload.isInvited ?? false
         dto.inviteAcceptedAt = payload.inviteAcceptedAt?.bridgeDate
         dto.inviteRejectedAt = payload.inviteRejectedAt?.bridgeDate
+        dto.archivedAt = payload.archivedAt?.bridgeDate
         dto.pinnedAt = payload.pinnedAt?.bridgeDate
         dto.notificationsMuted = payload.notificationsMuted
 
@@ -184,10 +186,14 @@ extension MemberDTO {
 extension ChatChannelMember {
     fileprivate static func create(fromDTO dto: MemberDTO) throws -> ChatChannelMember {
         try dto.isNotDeleted()
-        
+
+        guard let clientConfig = dto.managedObjectContext?.chatClientConfig else {
+            throw InvalidModel(dto)
+        }
+
         let extraData: [String: RawJSON]
         do {
-            extraData = try JSONDecoder.default.decode([String: RawJSON].self, from: dto.user.extraData)
+            extraData = try JSONDecoder.stream.decodeRawJSON(from: dto.user.extraData)
         } catch {
             log.error(
                 "Failed to decode extra data for user with id: <\(dto.user.id)>, using default value instead. "
@@ -196,19 +202,21 @@ extension ChatChannelMember {
             extraData = [:]
         }
 
-        var memberExtraData: [String: RawJSON] = [:]
-        if let dtoMemberExtraData = dto.extraData {
-            do {
-                memberExtraData = try JSONDecoder.default.decode([String: RawJSON].self, from: dtoMemberExtraData)
-            } catch {
-                memberExtraData = [:]
-            }
+        let memberExtraData: [String: RawJSON]
+        do {
+            memberExtraData = try JSONDecoder.stream.decodeRawJSON(from: dto.extraData)
+        } catch {
+            log.error(
+                "Failed to decode extra data for channel member with id: <\(dto.user.id)>, using default value instead. "
+                    + "Error: \(error)"
+            )
+            memberExtraData = [:]
         }
 
         let role = dto.channelRoleRaw.flatMap { MemberRole(rawValue: $0) } ?? .member
         let language: TranslationLanguage? = dto.user.language.map(TranslationLanguage.init)
 
-        return ChatChannelMember(
+        var member = ChatChannelMember(
             id: dto.user.id,
             name: dto.user.name,
             imageURL: dto.user.imageURL,
@@ -229,6 +237,7 @@ extension ChatChannelMember {
             isInvited: dto.isInvited,
             inviteAcceptedAt: dto.inviteAcceptedAt?.bridgeDate,
             inviteRejectedAt: dto.inviteRejectedAt?.bridgeDate,
+            archivedAt: dto.archivedAt?.bridgeDate,
             pinnedAt: dto.pinnedAt?.bridgeDate,
             isBannedFromChannel: dto.isBanned,
             banExpiresAt: dto.banExpiresAt?.bridgeDate,
@@ -236,6 +245,12 @@ extension ChatChannelMember {
             notificationsMuted: dto.notificationsMuted,
             memberExtraData: memberExtraData
         )
+
+        if let transformer = clientConfig.modelsTransformer {
+            member = transformer.transform(member: member)
+        }
+
+        return member
     }
 }
 

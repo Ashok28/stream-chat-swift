@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import CoreData
@@ -121,6 +121,14 @@ class MessageDTO: NSManagedObject {
         if let channel = previewOfChannel, !channel.hasChanges, !channel.isDeleted {
             let cid = channel.cid
             channel.cid = cid
+        }
+
+        // Refresh messages referencing the current message
+        if !quotedBy.isEmpty {
+            for message in quotedBy where !message.hasChanges && !message.isDeleted {
+                let messageId = message.id
+                message.id = messageId
+            }
         }
 
         prepareDefaultSortKeyIfNeeded()
@@ -434,7 +442,7 @@ class MessageDTO: NSManagedObject {
         MessageDTO.applyPrefetchingState(to: request)
         request.predicate = previewMessagePredicate(
             cid: cid,
-            includeShadowedMessages: context.shouldShowShadowedMessages ?? false
+            includeShadowedMessages: context.chatClientConfig?.shouldShowShadowedMessages ?? false
         )
         request.sortDescriptors = [NSSortDescriptor(keyPath: \MessageDTO.createdAt, ascending: false)]
         request.fetchOffset = 0
@@ -1194,11 +1202,12 @@ extension NSManagedObjectContext: MessageDatabaseSession {
         before id: MessageId,
         cid: String
     ) throws -> MessageDTO? {
-        try MessageDTO.loadMessage(
+        guard let clientConfig = chatClientConfig else { return nil }
+        return try MessageDTO.loadMessage(
             before: id,
             cid: cid,
-            deletedMessagesVisibility: deletedMessagesVisibility ?? .alwaysVisible,
-            shouldShowShadowedMessages: shouldShowShadowedMessages ?? true,
+            deletedMessagesVisibility: clientConfig.deletedMessagesVisibility,
+            shouldShowShadowedMessages: clientConfig.shouldShowShadowedMessages,
             context: self
         )
     }
@@ -1209,13 +1218,14 @@ extension NSManagedObjectContext: MessageDatabaseSession {
         in cid: ChannelId,
         sortAscending: Bool
     ) throws -> [MessageDTO] {
-        try MessageDTO.loadMessages(
+        guard let clientConfig = chatClientConfig else { return [] }
+        return try MessageDTO.loadMessages(
             from: fromIncludingDate,
             to: toIncludingDate,
             in: cid,
             sortAscending: sortAscending,
-            deletedMessagesVisibility: deletedMessagesVisibility ?? .alwaysVisible,
-            shouldShowShadowedMessages: shouldShowShadowedMessages ?? true,
+            deletedMessagesVisibility: clientConfig.deletedMessagesVisibility,
+            shouldShowShadowedMessages: clientConfig.shouldShowShadowedMessages,
             context: self
         )
     }
@@ -1226,13 +1236,14 @@ extension NSManagedObjectContext: MessageDatabaseSession {
         in messageId: MessageId,
         sortAscending: Bool
     ) throws -> [MessageDTO] {
-        try MessageDTO.loadReplies(
+        guard let clientConfig = chatClientConfig else { return [] }
+        return try MessageDTO.loadReplies(
             from: fromIncludingDate,
             to: toIncludingDate,
             in: messageId,
             sortAscending: sortAscending,
-            deletedMessagesVisibility: deletedMessagesVisibility ?? .alwaysVisible,
-            shouldShowShadowedMessages: shouldShowShadowedMessages ?? true,
+            deletedMessagesVisibility: clientConfig.deletedMessagesVisibility,
+            shouldShowShadowedMessages: clientConfig.shouldShowShadowedMessages,
             context: self
         )
     }
@@ -1275,20 +1286,12 @@ extension MessageDTO {
 
     /// Snapshots the current state of `MessageDTO` and returns its representation for the use in API calls.
     func asRequestBody() -> MessageRequestBody {
-        var decodedExtraData: [String: RawJSON]
-
-        if let extraData = self.extraData {
-            do {
-                decodedExtraData = try JSONDecoder.default.decode([String: RawJSON].self, from: extraData)
-            } catch {
-                log.assertionFailure(
-                    "Failed decoding saved extra data with error: \(error). This should never happen because"
-                        + "the extra data must be a valid JSON to be saved."
-                )
-                decodedExtraData = [:]
-            }
-        } else {
-            decodedExtraData = [:]
+        let extraData: [String: RawJSON]
+        do {
+            extraData = try JSONDecoder.stream.decodeRawJSON(from: self.extraData)
+        } catch {
+            log.assertionFailure("Failed decoding saved extra data with error: \(error). This should never happen because the extra data must be a valid JSON to be saved.")
+            extraData = [:]
         }
 
         let uploadedAttachments: [MessageAttachmentPayload] = attachments
@@ -1315,7 +1318,7 @@ extension MessageDTO {
             pinned: pinned,
             pinExpires: pinExpires?.bridgeDate,
             pollId: poll?.id,
-            extraData: decodedExtraData
+            extraData: extraData
         )
     }
 
@@ -1341,47 +1344,45 @@ private extension ChatMessage {
         }
         try dto.isNotDeleted()
 
-        id = dto.id
-        cid = try? dto.cid.map { try ChannelId(cid: $0) }
-        text = dto.text
-        type = MessageType(rawValue: dto.type) ?? .regular
-        command = dto.command
-        createdAt = dto.createdAt.bridgeDate
-        locallyCreatedAt = dto.locallyCreatedAt?.bridgeDate
-        updatedAt = dto.updatedAt.bridgeDate
-        deletedAt = dto.deletedAt?.bridgeDate
-        arguments = dto.args
-        parentMessageId = dto.parentMessageId
-        showReplyInChannel = dto.showReplyInChannel
-        replyCount = Int(dto.replyCount)
-        isBounced = dto.isBounced
-        isSilent = dto.isSilent
-        isShadowed = dto.isShadowed
-        reactionScores = dto.reactionScores.mapKeys { MessageReactionType(rawValue: $0) }
-        reactionCounts = dto.reactionCounts.mapKeys { MessageReactionType(rawValue: $0) }
-        reactionGroups = dto.reactionGroups.asModel()
-        translations = dto.translations?.mapKeys { TranslationLanguage(languageCode: $0) }
-        originalLanguage = dto.originalLanguage.map(TranslationLanguage.init)
-        moderationDetails = dto.moderationDetails.map { MessageModerationDetails(fromDTO: $0) }
-        textUpdatedAt = dto.textUpdatedAt?.bridgeDate
+        let id = dto.id
+        let cid = try? dto.cid.map { try ChannelId(cid: $0) }
+        let text = dto.text
+        let type = MessageType(rawValue: dto.type) ?? .regular
+        let command = dto.command
+        let createdAt = dto.createdAt.bridgeDate
+        let locallyCreatedAt = dto.locallyCreatedAt?.bridgeDate
+        let updatedAt = dto.updatedAt.bridgeDate
+        let deletedAt = dto.deletedAt?.bridgeDate
+        let arguments = dto.args
+        let parentMessageId = dto.parentMessageId
+        let showReplyInChannel = dto.showReplyInChannel
+        let replyCount = Int(dto.replyCount)
+        let isBounced = dto.isBounced
+        let isSilent = dto.isSilent
+        let isShadowed = dto.isShadowed
+        let reactionScores = dto.reactionScores.mapKeys { MessageReactionType(rawValue: $0) }
+        let reactionCounts = dto.reactionCounts.mapKeys { MessageReactionType(rawValue: $0) }
+        let reactionGroups = dto.reactionGroups.asModel()
+        let translations = dto.translations?.mapKeys { TranslationLanguage(languageCode: $0) }
+        let originalLanguage = dto.originalLanguage.map(TranslationLanguage.init)
+        let moderationDetails = dto.moderationDetails.map { MessageModerationDetails(fromDTO: $0) }
+        let textUpdatedAt = dto.textUpdatedAt?.bridgeDate
+        let chatClientConfig = context.chatClientConfig
 
-        if let extraData = dto.extraData, !extraData.isEmpty {
-            do {
-                self.extraData = try JSONDecoder.default.decode([String: RawJSON].self, from: extraData)
-            } catch {
-                log
-                    .error(
-                        "Failed to decode extra data for Message with id: <\(dto.id)>, using default value instead. Error: \(error)"
-                    )
-                self.extraData = [:]
-            }
-        } else {
+        let extraData: [String: RawJSON]
+        do {
+            extraData = try JSONDecoder.stream.decodeRawJSON(from: dto.extraData)
+        } catch {
+            log.error(
+                "Failed to decode extra data for Message with id: <\(dto.id)>, using default value instead. Error: \(error)"
+            )
             extraData = [:]
         }
 
-        localState = dto.localMessageState
-        isFlaggedByCurrentUser = dto.flaggedBy != nil
+        let localState = dto.localMessageState
+        let isFlaggedByCurrentUser = dto.flaggedBy != nil
 
+        let pinDetails: MessagePinDetails?
         if dto.pinned,
            let pinnedAt = dto.pinnedAt,
            let pinnedBy = dto.pinnedBy {
@@ -1394,8 +1395,10 @@ private extension ChatMessage {
             pinDetails = nil
         }
         
-        poll = try? dto.poll?.asModel()
+        let poll = try? dto.poll?.asModel()
 
+        let currentUserReactions: Set<ChatMessageReaction>
+        let isSentByCurrentUser: Bool
         if let currentUser = context.currentUser {
             isSentByCurrentUser = currentUser.user.id == dto.user.id
             if !dto.ownReactions.isEmpty {
@@ -1412,7 +1415,7 @@ private extension ChatMessage {
             currentUserReactions = []
         }
 
-        latestReactions = {
+        let latestReactions: Set<ChatMessageReaction> = {
             guard !dto.latestReactions.isEmpty else { return Set() }
             return Set(
                 MessageReactionDTO
@@ -1421,18 +1424,18 @@ private extension ChatMessage {
             )
         }()
 
-        threadParticipants = dto.threadParticipants.array
+        let threadParticipants = dto.threadParticipants.array
             .compactMap { $0 as? UserDTO }
             .compactMap { try? $0.asModel() }
 
-        mentionedUsers = Set(dto.mentionedUsers.compactMap { try? $0.asModel() })
+        let mentionedUsers = Set(dto.mentionedUsers.compactMap { try? $0.asModel() })
 
-        author = try dto.user.asModel()
-        _attachments = dto.attachments
+        let author = try dto.user.asModel()
+        let _attachments = dto.attachments
             .compactMap { $0.asAnyModel() }
             .sorted { $0.id.index < $1.id.index }
 
-        latestReplies = {
+        let latestReplies: [ChatMessage] = {
             guard dto.replyCount > 0 else { return [] }
             return dto.replies
                 .sorted(by: { $0.createdAt.bridgeDate > $1.createdAt.bridgeDate })
@@ -1440,10 +1443,57 @@ private extension ChatMessage {
                 .compactMap { try? ChatMessage(fromDTO: $0, depth: depth) }
         }()
 
-        let message = try? dto.quotedMessage?.relationshipAsModel(depth: depth)
-        _quotedMessage = { message }
+        let quotedMessage = try? dto.quotedMessage?.relationshipAsModel(depth: depth)
 
-        readBy = Set(dto.reads.compactMap { try? $0.user.asModel() })
+        let readBy = Set(dto.reads.compactMap { try? $0.user.asModel() })
+
+        let message = ChatMessage(
+            id: id,
+            cid: cid,
+            text: text,
+            type: type,
+            command: command,
+            createdAt: createdAt,
+            locallyCreatedAt: locallyCreatedAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            arguments: arguments,
+            parentMessageId: parentMessageId,
+            showReplyInChannel: showReplyInChannel,
+            replyCount: replyCount,
+            extraData: extraData,
+            quotedMessage: quotedMessage,
+            isBounced: isBounced,
+            isSilent: isSilent,
+            isShadowed: isShadowed,
+            reactionScores: reactionScores,
+            reactionCounts: reactionCounts,
+            reactionGroups: reactionGroups,
+            author: author,
+            mentionedUsers: mentionedUsers,
+            threadParticipants: threadParticipants,
+            attachments: _attachments,
+            latestReplies: latestReplies,
+            localState: localState,
+            isFlaggedByCurrentUser: isFlaggedByCurrentUser,
+            latestReactions: latestReactions,
+            currentUserReactions: currentUserReactions,
+            isSentByCurrentUser: isSentByCurrentUser,
+            pinDetails: pinDetails,
+            translations: translations,
+            originalLanguage: originalLanguage,
+            moderationDetails: moderationDetails,
+            readBy: readBy,
+            poll: poll,
+            textUpdatedAt: textUpdatedAt
+        )
+
+        if let transformer = chatClientConfig?.modelsTransformer {
+            self = transformer.transform(message: message)
+            return
+        }
+
+        self = message
     }
 }
 

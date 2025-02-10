@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 @testable import StreamChat
@@ -38,6 +38,19 @@ final class QuotedChatMessageView_Tests: XCTestCase {
     func test_defaultAppearance() {
         view.content = makeContent(text: "Hello Vader!")
 
+        AssertSnapshot(view)
+    }
+    
+    func test_withDeletedMessage() {
+        let message = ChatMessage.mock(
+            id: .unique,
+            cid: .unique,
+            text: "Hello Vader!",
+            author: .mock(id: .unique),
+            deletedAt: .unique,
+            isSentByCurrentUser: true
+        )
+        view.content = QuotedChatMessageView.Content(message: message, avatarAlignment: .leading)
         AssertSnapshot(view)
     }
 

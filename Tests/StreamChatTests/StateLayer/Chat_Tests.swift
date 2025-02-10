@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 @testable import StreamChat
@@ -112,6 +112,70 @@ final class Chat_Tests: XCTestCase {
         env.channelUpdaterMock.stopWatching_completion_result = .failure(expectedTestError)
         await XCTAssertAsyncFailure(try await chat.stopWatching(), expectedTestError)
         XCTAssertEqual(channelId, env.channelUpdaterMock.stopWatching_cid)
+    }
+    
+    // MARK: - Archiving and Unarchiving the Channel
+    
+    func test_archive_whenCurrentUserIdIsNotSet_thenArchivingFails() async throws {
+        try await setUpChat(usesMockedUpdaters: true, loggedIn: false)
+        await XCTAssertAsyncFailure(
+            try await chat.archive(),
+            expectedErrorHandler: { error in error is ClientError.CurrentUserDoesNotExist }
+        )
+    }
+    
+    func test_archive_whenChannelUpdaterFails_thenExpectedErrorIsThrown() async throws {
+        env.memberUpdaterMock.partialUpdate_completion_result = .failure(expectedTestError)
+        await XCTAssertAsyncFailure(try await chat.archive(), expectedTestError)
+        XCTAssertEqual(channelId, env.memberUpdaterMock.partialUpdate_cid)
+        XCTAssertEqual(currentUserId, env.memberUpdaterMock.partialUpdate_userId)
+        XCTAssertEqual(nil, env.memberUpdaterMock.partialUpdate_unset)
+        XCTAssertEqual(MemberUpdatePayload(archived: true), env.memberUpdaterMock.partialUpdate_updates)
+    }
+    
+    func test_archive_whenChannelUpdaterSucceeds_thenArchivingSucceeds() async throws {
+        env.memberUpdaterMock.partialUpdate_completion_result = .success(
+            ChatChannelMember.mock(
+                id: currentUserId,
+                pinnedAt: .unique
+            )
+        )
+        try await chat.archive()
+        XCTAssertEqual(channelId, env.memberUpdaterMock.partialUpdate_cid)
+        XCTAssertEqual(currentUserId, env.memberUpdaterMock.partialUpdate_userId)
+        XCTAssertEqual(nil, env.memberUpdaterMock.partialUpdate_unset)
+        XCTAssertEqual(MemberUpdatePayload(archived: true), env.memberUpdaterMock.partialUpdate_updates)
+    }
+    
+    func test_unarchive_whenCurrentUserIdIsNotSet_thenUnarchivingFails() async throws {
+        try await setUpChat(usesMockedUpdaters: true, loggedIn: false)
+        await XCTAssertAsyncFailure(
+            try await chat.unarchive(),
+            expectedErrorHandler: { error in error is ClientError.CurrentUserDoesNotExist }
+        )
+    }
+
+    func test_unarchive_whenChannelUpdaterFails_thenExpectedErrorIsThrown() async throws {
+        env.memberUpdaterMock.partialUpdate_completion_result = .failure(expectedTestError)
+        await XCTAssertAsyncFailure(try await chat.unarchive(), expectedTestError)
+        XCTAssertEqual(channelId, env.memberUpdaterMock.partialUpdate_cid)
+        XCTAssertEqual(currentUserId, env.memberUpdaterMock.partialUpdate_userId)
+        XCTAssertEqual(["archived"], env.memberUpdaterMock.partialUpdate_unset)
+        XCTAssertEqual(nil, env.memberUpdaterMock.partialUpdate_updates)
+    }
+    
+    func test_unarchive_whenChannelUpdaterSucceeds_thenUnarchivingSucceeds() async throws {
+        env.memberUpdaterMock.partialUpdate_completion_result = .success(
+            ChatChannelMember.mock(
+                id: currentUserId,
+                pinnedAt: nil
+            )
+        )
+        try await chat.unarchive()
+        XCTAssertEqual(channelId, env.memberUpdaterMock.partialUpdate_cid)
+        XCTAssertEqual(currentUserId, env.memberUpdaterMock.partialUpdate_userId)
+        XCTAssertEqual(["archived"], env.memberUpdaterMock.partialUpdate_unset)
+        XCTAssertEqual(nil, env.memberUpdaterMock.partialUpdate_updates)
     }
     
     // MARK: - Deleting the Channel
@@ -598,7 +662,7 @@ final class Chat_Tests: XCTestCase {
             messageId: apiResponse.message.id
         )
         
-        await fulfillmentCompatibility(of: [notificationExpectation], timeout: defaultTimeout)
+        await fulfillment(of: [notificationExpectation], timeout: defaultTimeout)
         
         XCTAssertEqual(text, message.text)
         await XCTAssertEqual(1, chat.state.messages.count)
@@ -1240,7 +1304,7 @@ final class Chat_Tests: XCTestCase {
         )
         XCTAssertEqual(apiResponse.message.id, replyMessage.id)
         
-        await fulfillmentCompatibility(of: [notificationExpectation], timeout: defaultTimeout)
+        await fulfillment(of: [notificationExpectation], timeout: defaultTimeout)
         
         let messageState = try await chat.messageState(for: lastMessageId)
         await XCTAssertEqual(lastMessageId, messageState.message.id)

@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import CoreData
@@ -207,17 +207,12 @@ extension MessageReactionDTO {
     func asModel() throws -> ChatMessageReaction {
         try isNotDeleted()
         
-        let decodedExtraData: [String: RawJSON]
-
-        if let extraData = self.extraData, !extraData.isEmpty {
-            do {
-                decodedExtraData = try JSONDecoder.default.decode([String: RawJSON].self, from: extraData)
-            } catch {
-                log.error("Failed decoding saved extra data with error: \(error)")
-                decodedExtraData = [:]
-            }
-        } else {
-            decodedExtraData = [:]
+        let extraData: [String: RawJSON]
+        do {
+            extraData = try JSONDecoder.stream.decodeRawJSON(from: self.extraData)
+        } catch {
+            log.error("Failed decoding saved extra data with error: \(error)")
+            extraData = [:]
         }
 
         return try .init(
@@ -227,7 +222,7 @@ extension MessageReactionDTO {
             createdAt: createdAt?.bridgeDate ?? .init(),
             updatedAt: updatedAt?.bridgeDate ?? .init(),
             author: user.asModel(),
-            extraData: decodedExtraData
+            extraData: extraData
         )
     }
 }

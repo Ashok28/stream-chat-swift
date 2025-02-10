@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import Foundation
@@ -29,6 +29,7 @@ public extension ChatChannelMember {
         isInvited: Bool = false,
         inviteAcceptedAt: Date? = nil,
         inviteRejectedAt: Date? = nil,
+        archivedAt: Date? = nil,
         pinnedAt: Date? = nil,
         isBannedFromChannel: Bool = false,
         banExpiresAt: Date? = nil,
@@ -57,6 +58,7 @@ public extension ChatChannelMember {
             isInvited: isInvited,
             inviteAcceptedAt: inviteAcceptedAt,
             inviteRejectedAt: inviteRejectedAt,
+            archivedAt: archivedAt,
             pinnedAt: pinnedAt,
             isBannedFromChannel: isBannedFromChannel,
             banExpiresAt: banExpiresAt,

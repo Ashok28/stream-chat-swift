@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import CoreData
@@ -60,11 +60,14 @@ extension PollOptionDTO {
     func asModel() throws -> PollOption {
         try isNotDeleted()
         
-        var extraData: [String: RawJSON] = [:]
-        if let custom,
-           !custom.isEmpty,
-           let decoded = try? JSONDecoder.default.decode([String: RawJSON].self, from: custom) {
-            extraData = decoded
+        let extraData: [String: RawJSON]
+        do {
+            extraData = try JSONDecoder.stream.decodeRawJSON(from: custom)
+        } catch {
+            log.error(
+                "Failed to decode extra data for poll option with id: <\(id)>, using default value instead. Error: \(error)"
+            )
+            extraData = [:]
         }
         return PollOption(
             id: id,
@@ -90,7 +93,11 @@ extension NSManagedObjectContext {
             cache: cache
         )
         dto.text = payload.text
-        dto.custom = try JSONEncoder.default.encode(payload.custom)
+        if let custom = payload.custom, !custom.isEmpty {
+            dto.custom = try JSONEncoder.default.encode(custom)
+        } else {
+            dto.custom = nil
+        }
         return dto
     }
     

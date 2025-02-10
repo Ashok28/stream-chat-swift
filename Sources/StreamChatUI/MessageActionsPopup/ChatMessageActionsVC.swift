@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import StreamChat
@@ -20,6 +20,9 @@ open class ChatMessageActionsVC: _ViewController, ThemeProvider {
 
     /// `ChatMessageController` instance used to obtain the message data.
     public var messageController: ChatMessageController!
+
+    /// A boolean value indicating if the actions are being shown inside a thread.
+    public var isInsideThread: Bool = false
 
     /// The channel which the actions will be performed.
     public var channel: ChatChannel? {
@@ -117,7 +120,7 @@ open class ChatMessageActionsVC: _ViewController, ThemeProvider {
                 actions.append(inlineReplyActionItem())
             }
 
-            if canSendReply && !message.isPartOfThread {
+            if canSendReply && !message.isPartOfThread && !isInsideThread {
                 actions.append(threadReplyActionItem())
             }
 

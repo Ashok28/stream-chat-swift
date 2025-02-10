@@ -1,10 +1,26 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import CoreData
 
-extension NSManagedObjectContext: DatabaseSession {}
+extension NSManagedObjectContext: DatabaseSession {
+    private static let chatClientConfigKey = "io.getStream.StreamChat.config.key"
+
+    var chatClientConfig: ChatClientConfig? {
+        var config: ChatClientConfig?
+        performAndWait {
+            config = userInfo[Self.chatClientConfigKey] as? ChatClientConfig
+        }
+        return config
+    }
+
+    func setChatClientConfig(_ config: ChatClientConfig) {
+        performAndWait {
+            userInfo[Self.chatClientConfigKey] = config
+        }
+    }
+}
 
 protocol UserDatabaseSession {
     /// Saves the provided payload to the DB. Return's the matching `UserDTO` if the save was successful. Throws an error
@@ -301,9 +317,6 @@ protocol ChannelDatabaseSession {
 
     /// Removes channel list query from database.
     func delete(query: ChannelListQuery)
-
-    /// Cleans a list of channels based on their id
-    func cleanChannels(cids: Set<ChannelId>)
 
     /// Removes a list of channels based on their id
     func removeChannels(cids: Set<ChannelId>)

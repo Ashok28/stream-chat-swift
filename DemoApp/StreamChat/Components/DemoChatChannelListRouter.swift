@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import StreamChat
@@ -461,6 +461,18 @@ final class DemoChatChannelListRouter: ChatChannelListRouter {
                 channelController.unpin { error in
                     guard let error else { return }
                     self.rootViewController.presentAlert(title: "Couldn't unpin channel \(cid)", message: "\(error)")
+                }
+            }),
+            .init(title: "Archive channel", isEnabled: true, handler: { [unowned self] _ in
+                channelController.archive { error in
+                    guard let error else { return }
+                    self.rootViewController.presentAlert(title: "Couldn't archive channel \(cid)", message: "\(error)")
+                }
+            }),
+            .init(title: "Unarchive channel", isEnabled: true, handler: { [unowned self] _ in
+                channelController.unarchive { error in
+                    guard let error else { return }
+                    self.rootViewController.presentAlert(title: "Couldn't unarchive channel \(cid)", message: "\(error)")
                 }
             }),
             .init(title: "Enable slow mode", isEnabled: canSetChannelCooldown, handler: { [unowned self] _ in

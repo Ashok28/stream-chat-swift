@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import CoreData
@@ -33,6 +33,7 @@ class ChannelDTO: NSManagedObject {
     // This field is also used to implement the `clearHistory` option when hiding the channel.
     @NSManaged var truncatedAt: DBDate?
 
+    @NSManaged var isDisabled: Bool
     @NSManaged var isHidden: Bool
 
     @NSManaged var watcherCount: Int64
@@ -265,6 +266,7 @@ extension NSManagedObjectContext {
             }
         }
 
+        dto.isDisabled = payload.isDisabled
         dto.isFrozen = payload.isFrozen
         
         // Backend only returns a boolean
@@ -371,18 +373,6 @@ extension NSManagedObjectContext {
         delete(dto)
     }
 
-    func cleanChannels(cids: Set<ChannelId>) {
-        let channels = ChannelDTO.load(cids: Array(cids), context: self)
-        for channelDTO in channels {
-            channelDTO.resetEphemeralValues()
-            channelDTO.messages.removeAll()
-            channelDTO.members.removeAll()
-            channelDTO.pinnedMessages.removeAll()
-            channelDTO.reads.removeAll()
-            channelDTO.oldestMessageAt = nil
-        }
-    }
-
     func removeChannels(cids: Set<ChannelId>) {
         let channels = ChannelDTO.load(cids: Array(cids), context: self)
         channels.forEach(delete)
@@ -450,7 +440,9 @@ extension ChannelDTO {
 
 extension ChannelDTO {
     /// Snapshots the current state of `ChannelDTO` and returns an immutable model object from it.
-    func asModel() throws -> ChatChannel { try .create(fromDTO: self, depth: 0) }
+    func asModel() throws -> ChatChannel {
+        try .create(fromDTO: self, depth: 0)
+    }
 
     /// Snapshots the current state of `ChannelDTO` and returns an immutable model object from it if the dependency depth
     /// limit has not been reached
@@ -470,14 +462,18 @@ extension ChatChannel {
         guard StreamRuntimeCheck._canFetchRelationship(currentDepth: depth) else {
             throw RecursionLimitError()
         }
+
         try dto.isNotDeleted()
-        guard let cid = try? ChannelId(cid: dto.cid), let context = dto.managedObjectContext else {
+
+        guard let cid = try? ChannelId(cid: dto.cid),
+              let context = dto.managedObjectContext,
+              let clientConfig = context.chatClientConfig else {
             throw InvalidModel(dto)
         }
 
         let extraData: [String: RawJSON]
         do {
-            extraData = try JSONDecoder.default.decode([String: RawJSON].self, from: dto.extraData)
+            extraData = try JSONDecoder.stream.decodeRawJSON(from: dto.extraData)
         } catch {
             log.error(
                 "Failed to decode extra data for Channel with cid: <\(dto.cid)>, using default value instead. "
@@ -510,7 +506,7 @@ extension ChatChannel {
 
         let latestMessages: [ChatMessage] = {
             var messages = sortedMessageDTOs
-                .prefix(dto.managedObjectContext?.localCachingSettings?.chatChannel.latestMessagesLimit ?? 25)
+                .prefix(clientConfig.localCaching.chatChannel.latestMessagesLimit)
                 .compactMap { try? $0.relationshipAsModel(depth: depth) }
             if let oldest = dto.oldestMessageAt?.bridgeDate {
                 messages = messages.filter { $0.createdAt >= oldest }
@@ -541,7 +537,7 @@ extension ChatChannel {
                 }
                 return lhsActivity > rhsActivity
             }
-            .prefix(context.localCachingSettings?.chatChannel.lastActiveWatchersLimit ?? 100)
+            .prefix(clientConfig.localCaching.chatChannel.lastActiveWatchersLimit)
             .compactMap { try? $0.asModel() }
         
         let members = dto.members
@@ -553,7 +549,7 @@ extension ChatChannel {
                 }
                 return lhsActivity > rhsActivity
             }
-            .prefix(context.localCachingSettings?.chatChannel.lastActiveMembersLimit ?? 100)
+            .prefix(clientConfig.localCaching.chatChannel.lastActiveMembersLimit)
             .compactMap { try? $0.asModel() }
 
         let muteDetails: MuteDetails? = {
@@ -568,8 +564,8 @@ extension ChatChannel {
         let pinnedMessages = dto.pinnedMessages.compactMap { try? $0.relationshipAsModel(depth: depth) }
         let previewMessage = try? dto.previewMessage?.relationshipAsModel(depth: depth)
         let typingUsers = Set(dto.currentlyTypingUsers.compactMap { try? $0.asModel() })
-        
-        return try ChatChannel(
+
+        let channel = try ChatChannel(
             cid: cid,
             name: dto.name,
             imageURL: dto.imageURL,
@@ -583,6 +579,7 @@ extension ChatChannel {
             config: dto.config.asModel(),
             ownCapabilities: Set(dto.ownCapabilities.compactMap(ChannelCapability.init(rawValue:))),
             isFrozen: dto.isFrozen,
+            isDisabled: dto.isDisabled,
             isBlocked: dto.isBlocked,
             lastActiveMembers: members,
             membership: membership,
@@ -601,6 +598,12 @@ extension ChatChannel {
             muteDetails: muteDetails,
             previewMessage: previewMessage
         )
+
+        if let transformer = clientConfig.modelsTransformer {
+            return transformer.transform(channel: channel)
+        }
+
+        return channel
     }
 }
 

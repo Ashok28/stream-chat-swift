@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import AVFoundation
@@ -460,7 +460,7 @@ private final class MockΑudioRecorderMeterNormaliser: AudioValuePercentageNorma
 }
 
 @dynamicMemberLookup
-private final class StubAudioRecorder: AVAudioRecorder, Stub {
+private final class StubAudioRecorder: AVAudioRecorder, Stub, @unchecked Sendable {
     var stubbedProperties: [String: Any] = [:]
 
     var recordWasCalled = false

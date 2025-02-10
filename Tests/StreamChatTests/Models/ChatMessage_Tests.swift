@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 @testable import StreamChat
@@ -391,5 +391,49 @@ final class ChatMessage_Tests: XCTestCase {
         let actualIds = messageWithAttachments.voiceRecordingAttachments.map(\.id)
 
         XCTAssertEqual(actualIds, expectedIds)
+    }
+
+    func test_replacing() {
+        let originalMessage = ChatMessage.mock(
+            id: .unique,
+            cid: .unique,
+            text: "Original text",
+            extraData: ["original": .string("data")],
+            attachments: [
+                .dummy(id: .init(cid: .unique, messageId: .unique, index: 0))
+            ]
+        )
+
+        // Test replacing all fields
+        let allFieldsReplaced = originalMessage.replacing(
+            text: "New text",
+            extraData: ["new": .string("data")],
+            attachments: [
+                .dummy(id: .init(cid: .unique, messageId: .unique, index: 99))
+            ]
+        )
+
+        // Verify replaced fields
+        XCTAssertEqual(allFieldsReplaced.text, "New text")
+        XCTAssertEqual(allFieldsReplaced.extraData["new"]?.stringValue, "data")
+        XCTAssertEqual(allFieldsReplaced.allAttachments.first?.id.index, 99)
+
+        // Verify other fields remain unchanged
+        XCTAssertEqual(allFieldsReplaced.id, originalMessage.id)
+        XCTAssertEqual(allFieldsReplaced.cid, originalMessage.cid)
+        XCTAssertEqual(allFieldsReplaced.type, originalMessage.type)
+        XCTAssertEqual(allFieldsReplaced.author, originalMessage.author)
+        XCTAssertEqual(allFieldsReplaced.createdAt, originalMessage.createdAt)
+
+        // Test replacing some fields while erasing others
+        let partialReplacement = originalMessage.replacing(
+            text: "New text",
+            extraData: nil,
+            attachments: nil
+        )
+
+        XCTAssertEqual(partialReplacement.text, "New text")
+        XCTAssertEqual(partialReplacement.extraData, [:])
+        XCTAssertEqual(partialReplacement.allAttachments, [])
     }
 }

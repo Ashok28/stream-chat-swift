@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import Foundation
@@ -25,6 +25,9 @@ public class ChatChannelMember: ChatUser {
     /// If the member rejected a channel invitation, this field contains date of when the invitation was rejected,
     /// otherwise it's `nil`.
     public let inviteRejectedAt: Date?
+    
+    /// Returns the date if the member has archived the channel, otherwise nil.
+    public let archivedAt: Date?
     
     /// Returns the date if the member has pinned the channel, otherwise nil.
     public let pinnedAt: Date?
@@ -72,6 +75,7 @@ public class ChatChannelMember: ChatUser {
         isInvited: Bool,
         inviteAcceptedAt: Date?,
         inviteRejectedAt: Date?,
+        archivedAt: Date?,
         pinnedAt: Date?,
         isBannedFromChannel: Bool,
         banExpiresAt: Date?,
@@ -85,6 +89,7 @@ public class ChatChannelMember: ChatUser {
         self.isInvited = isInvited
         self.inviteAcceptedAt = inviteAcceptedAt
         self.inviteRejectedAt = inviteRejectedAt
+        self.archivedAt = archivedAt
         self.pinnedAt = pinnedAt
         self.isBannedFromChannel = isBannedFromChannel
         self.isShadowBannedFromChannel = isShadowBannedFromChannel
@@ -107,6 +112,49 @@ public class ChatChannelMember: ChatUser {
             teams: teams,
             language: language,
             extraData: extraData
+        )
+    }
+
+    /// Returns a new `ChatChannelMember` with the provided data replaced.
+    /// - Parameters:
+    ///  - name: The new name.
+    ///  - imageURL: The new image URL.
+    ///  - userExtraData: The new extra data for the user.
+    ///  - memberExtraData: The new extra data for the member channel (only related to this channel membership).
+    public func replacing(
+        name: String?,
+        imageURL: URL?,
+        userExtraData: [String: RawJSON]?,
+        memberExtraData: [String: RawJSON]?
+    ) -> ChatChannelMember {
+        .init(
+            id: id,
+            name: name,
+            imageURL: imageURL,
+            isOnline: isOnline,
+            isBanned: isBannedFromChannel,
+            isFlaggedByCurrentUser: isFlaggedByCurrentUser,
+            userRole: userRole,
+            userCreatedAt: userCreatedAt,
+            userUpdatedAt: userUpdatedAt,
+            deactivatedAt: userDeactivatedAt,
+            lastActiveAt: lastActiveAt,
+            teams: teams,
+            language: language,
+            extraData: userExtraData ?? [:],
+            memberRole: memberRole,
+            memberCreatedAt: memberCreatedAt,
+            memberUpdatedAt: memberUpdatedAt,
+            isInvited: isInvited,
+            inviteAcceptedAt: inviteAcceptedAt,
+            inviteRejectedAt: inviteRejectedAt,
+            archivedAt: archivedAt,
+            pinnedAt: pinnedAt,
+            isBannedFromChannel: isBannedFromChannel,
+            banExpiresAt: banExpiresAt,
+            isShadowBannedFromChannel: isShadowBannedFromChannel,
+            notificationsMuted: notificationsMuted,
+            memberExtraData: memberExtraData ?? [:]
         )
     }
 }
@@ -152,6 +200,18 @@ public extension MemberRole {
             self = .owner
         default:
             self = MemberRole(rawValue: value)
+        }
+    }
+    
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case .member:
+            try container.encode("channel_member")
+        case .moderator:
+            try container.encode("channel_moderator")
+        default:
+            try container.encode(rawValue)
         }
     }
 }

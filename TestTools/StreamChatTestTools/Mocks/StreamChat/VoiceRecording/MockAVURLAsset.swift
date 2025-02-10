@@ -1,11 +1,11 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import AVFoundation
 
 @dynamicMemberLookup
-public final class MockAVURLAsset: AVURLAsset, Spy, Stub {
+public final class MockAVURLAsset: AVURLAsset, Spy, Stub, @unchecked Sendable {
 
     public let spyState = SpyState()
     public var stubbedProperties: [String: Any] = [:]

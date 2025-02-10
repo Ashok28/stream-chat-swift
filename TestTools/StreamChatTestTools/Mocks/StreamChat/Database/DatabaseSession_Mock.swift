@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import Foundation
@@ -96,10 +96,6 @@ class DatabaseSession_Mock: DatabaseSession {
 
     func deleteQuery(_ query: UserListQuery) {
         underlyingSession.deleteQuery(query)
-    }
-
-    func cleanChannels(cids: Set<ChannelId>) {
-        underlyingSession.cleanChannels(cids: cids)
     }
 
     func removeChannels(cids: Set<ChannelId>) {
@@ -301,7 +297,7 @@ class DatabaseSession_Mock: DatabaseSession {
         try throwErrorIfNeeded()
         return try underlyingSession.saveChannel(payload: payload, query: query, cache: cache)
     }
-    
+
     func channel(cid: ChannelId) -> ChannelDTO? {
         underlyingSession.channel(cid: cid)
     }

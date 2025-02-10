@@ -1,12 +1,12 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import Foundation
 
 /// An enum with possible operators to use in filters.
 public enum FilterOperator: String {
-    /// Matches values that are equal to a specified value.
+    /// Matches values that are equal to a specified value or matches all of the values in an array.
     case equal = "$eq"
 
     /// Matches all values that are not equal to a specified value.
@@ -80,6 +80,7 @@ extension Filter: FilterValue {}
 
 extension ChannelId: FilterValue {}
 extension ChannelType: FilterValue {}
+extension MemberRole: FilterValue {}
 extension UserRole: FilterValue {}
 extension AttachmentType: FilterValue {}
 extension Optional: FilterValue where Wrapped == TeamId {}
@@ -294,6 +295,17 @@ public extension Filter {
             operator: .equal,
             key: key,
             value: value,
+            valueMapper: key.valueMapper,
+            keyPathString: key.keyPathString
+        )
+    }
+    
+    /// Matches values that are equal to a specified values.
+    static func equal<Value: Encodable>(_ key: FilterKey<Scope, Value>, values: [Value]) -> Filter {
+        .init(
+            operator: .equal,
+            key: key,
+            value: values,
             valueMapper: key.valueMapper,
             keyPathString: key.keyPathString
         )

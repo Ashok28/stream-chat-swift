@@ -1,5 +1,5 @@
 //
-// Copyright © 2024 Stream.io Inc. All rights reserved.
+// Copyright © 2025 Stream.io Inc. All rights reserved.
 //
 
 import AVFoundation
@@ -363,7 +363,7 @@ private final class StubAVAudioSession: AudioSessionProtocol, Stub {
 }
 
 @dynamicMemberLookup
-private final class StubAVAudioSessionPortDescription: AVAudioSessionPortDescription, Stub {
+private final class StubAVAudioSessionPortDescription: AVAudioSessionPortDescription, Stub, @unchecked Sendable {
     var stubbedProperties: [String: Any] = [:]
 
     override var portType: AVAudioSession.Port { self[dynamicMember: \.portType] }
