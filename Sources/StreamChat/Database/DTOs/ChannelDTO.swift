@@ -66,6 +66,7 @@ class ChannelDTO: NSManagedObject {
     @NSManaged var watchers: Set<UserDTO>
     @NSManaged var memberListQueries: Set<ChannelMemberListQueryDTO>
     @NSManaged var previewMessage: MessageDTO?
+    @NSManaged var draftMessage: MessageDTO?
 
     /// If the current channel is muted by the current user, `mute` contains details.
     @NSManaged var mute: ChannelMuteDTO?
@@ -311,22 +312,42 @@ extension NSManagedObjectContext {
     ) throws -> ChannelDTO {
         let dto = try saveChannel(payload: payload.channel, query: query, cache: cache)
 
+        // Save reads (note that returned reads are for currently fetched members)
         let reads = Set(
             try payload.channelReads.map {
                 try saveChannelRead(payload: $0, for: payload.channel.cid, cache: cache)
             }
         )
-        dto.reads.subtracting(reads).forEach { delete($0) }
-        dto.reads = reads
-
+        dto.reads.formUnion(reads)
+        
         try payload.messages.forEach { _ = try saveMessage(payload: $0, channelDTO: dto, syncOwnReactions: true, cache: cache) }
         try payload.pendingMessages?.forEach { _ = try saveMessage(payload: $0, channelDTO: dto, syncOwnReactions: true, cache: cache) }
+        
+        // Recalculate reads for existing messages (saveMessage updates it for messages in the payload)
+        let channelReadDTOs = dto.reads
+        let currentUserId = currentUser?.user.id
+        let payloadMessageIds = Set(payload.messages.map(\.id) + (payload.pendingMessages?.map(\.id) ?? []))
+        for message in dto.messages {
+            guard message.user.id == currentUserId else { continue }
+            guard !payloadMessageIds.contains(message.id) else { continue }
+            message.updateReadBy(withChannelReads: channelReadDTOs)
+        }
         
         if dto.needsPreviewUpdate(payload) {
             dto.previewMessage = preview(for: payload.channel.cid)
         }
 
         dto.updateOldestMessageAt(payload: payload)
+
+        if let draftMessage = payload.draft {
+            dto.draftMessage = try saveDraftMessage(payload: draftMessage, for: payload.channel.cid, cache: nil)
+        } else {
+            /// If the payload does not contain a draft message, we should
+            /// delete the existing draft message if it exists.
+            if let draftMessage = dto.draftMessage {
+                deleteDraftMessage(in: payload.channel.cid, threadId: draftMessage.parentMessageId)
+            }
+        }
 
         try payload.pinnedMessages.forEach {
             _ = try saveMessage(payload: $0, channelDTO: dto, syncOwnReactions: true, cache: cache)
@@ -563,6 +584,7 @@ extension ChatChannel {
         let membership = try dto.membership.map { try $0.asModel() }
         let pinnedMessages = dto.pinnedMessages.compactMap { try? $0.relationshipAsModel(depth: depth) }
         let previewMessage = try? dto.previewMessage?.relationshipAsModel(depth: depth)
+        let draftMessage = try? dto.draftMessage?.relationshipAsModel(depth: depth)
         let typingUsers = Set(dto.currentlyTypingUsers.compactMap { try? $0.asModel() })
 
         let channel = try ChatChannel(
@@ -596,7 +618,8 @@ extension ChatChannel {
             lastMessageFromCurrentUser: latestMessageFromUser,
             pinnedMessages: pinnedMessages,
             muteDetails: muteDetails,
-            previewMessage: previewMessage
+            previewMessage: previewMessage,
+            draftMessage: draftMessage.map(DraftMessage.init)
         )
 
         if let transformer = clientConfig.modelsTransformer {
