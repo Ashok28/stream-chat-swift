@@ -1,6 +1,6 @@
 {
   "message": {
-    "id": "264dfdcf-4cbf-4ba4-afd4-eb622e7b7a36",
+    "id": "842aac8c-2507-4383-8ae9-069861a735d0",
     "text": "Test",
     "html": "<p>Test</p>\n",
     "type": "regular",
@@ -8,23 +8,23 @@
       "id": "luke_skywalker",
       "name": "Luke Skywalker",
       "image": "https://vignette.wikia.nocookie.net/starwars/images/2/20/LukeTLJ.jpg",
-      "language": "id",
+      "language": "en",
       "role": "admin",
       "teams": [
 
       ],
       "created_at": "2024-04-04T09:26:11.805899Z",
-      "updated_at": "2025-03-04T17:42:53.930104Z",
+      "updated_at": "2025-07-14T14:15:24.534969Z",
       "banned": false,
       "online": true,
-      "last_active": "2025-03-15T00:15:52.376423417Z",
+      "last_active": "2025-07-15T00:41:30.733332796Z",
       "blocked_user_ids": [
 
       ],
-      "birthland": "Tatooine",
       "team": "test",
       "type": "team",
-      "pando": "{\"speciality\":\"ios engineer\"}"
+      "pando": "{\"speciality\":\"ios engineer\"}",
+      "birthland": "Tatooine"
     },
     "attachments": [
 
@@ -41,13 +41,18 @@
     },
     "reply_count": 0,
     "deleted_reply_count": 0,
-    "cid": "messaging:277d1327-0afd-4d76-87e8-fac1b3231ba7",
-    "created_at": "2025-03-15T00:15:56.802706Z",
-    "updated_at": "2025-03-15T00:15:56.802706Z",
+    "cid": "messaging:4ad5e2f5-d855-4944-9ac9-3d76d3f378b3",
+    "created_at": "2025-07-15T00:41:43.769209Z",
+    "updated_at": "2025-07-15T00:41:43.769209Z",
     "shadowed": false,
     "mentioned_users": [
 
     ],
+    "i18n": {
+      "en_text": "Test",
+      "fr_text": "Testez",
+      "language": "en"
+    },
     "silent": false,
     "pinned": false,
     "pinned_at": null,
@@ -57,5 +62,5 @@
 
     ]
   },
-  "duration": "1659.24ms"
+  "duration": "364.76ms"
 }
