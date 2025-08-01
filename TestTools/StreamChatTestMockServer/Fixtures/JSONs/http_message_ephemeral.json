@@ -1,6 +1,6 @@
 {
   "message": {
-    "id": "b54caa37-debe-41dc-ad4e-f1b08ab550b7",
+    "id": "fe0e2f88-3988-4486-b737-262b03b4e17e",
     "text": "/giphy Test",
     "command": "giphy",
     "html": "<p>/giphy Test</p>\n",
@@ -9,19 +9,20 @@
       "id": "luke_skywalker",
       "name": "Luke Skywalker",
       "image": "https://vignette.wikia.nocookie.net/starwars/images/2/20/LukeTLJ.jpg",
-      "language": "id",
+      "language": "en",
       "role": "admin",
       "teams": [
 
       ],
       "created_at": "2024-04-04T09:26:11.805899Z",
-      "updated_at": "2025-03-04T17:42:53.930104Z",
+      "updated_at": "2025-07-30T04:10:43.593132Z",
       "banned": false,
       "online": true,
-      "last_active": "2025-03-15T00:15:52.376423417Z",
+      "last_active": "2025-08-01T00:43:51.295102238Z",
       "blocked_user_ids": [
 
       ],
+      "avg_response_time": 20221,
       "pando": "{\"speciality\":\"ios engineer\"}",
       "birthland": "Tatooine",
       "team": "test",
@@ -31,8 +32,8 @@
       {
         "type": "giphy",
         "title": "Test",
-        "title_link": "https://giphy.com/gifs/dog-hello-pun-yoJC2qNujv3gJWP504",
-        "thumb_url": "https://media0.giphy.com/media/yoJC2qNujv3gJWP504/giphy.gif?cid=c4b036756rudds4wzvwj2tiidfa6vuotyn8ovgwvgszezm68&ep=v1_gifs_search&rid=giphy.gif&ct=g",
+        "title_link": "https://giphy.com/gifs/veephbo-veep-season-6-xUPGcpfvIsVNeOAZgI",
+        "thumb_url": "https://media1.giphy.com/media/v1.Y2lkPWM0YjAzNjc1M2V2MzJjM25lMDUyemV4dWF0ZGpvZ2duZjc2ZXUxaGY4ZnJvdjJveSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/xUPGcpfvIsVNeOAZgI/giphy.gif",
         "actions": [
           {
             "name": "image_action",
@@ -58,52 +59,52 @@
         ],
         "giphy": {
           "original": {
-            "url": "https://media0.giphy.com/media/yoJC2qNujv3gJWP504/giphy.gif?cid=c4b036756rudds4wzvwj2tiidfa6vuotyn8ovgwvgszezm68&ep=v1_gifs_search&rid=giphy.gif&ct=g",
-            "width": "533",
-            "height": "301",
-            "size": "1807240",
-            "frames": "24"
+            "url": "https://media1.giphy.com/media/v1.Y2lkPWM0YjAzNjc1M2V2MzJjM25lMDUyemV4dWF0ZGpvZ2duZjc2ZXUxaGY4ZnJvdjJveSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/xUPGcpfvIsVNeOAZgI/giphy.gif",
+            "width": "500",
+            "height": "282",
+            "size": "3342289",
+            "frames": "57"
           },
           "fixed_height": {
-            "url": "https://media0.giphy.com/media/yoJC2qNujv3gJWP504/200.gif?cid=c4b036756rudds4wzvwj2tiidfa6vuotyn8ovgwvgszezm68&ep=v1_gifs_search&rid=200.gif&ct=g",
+            "url": "https://media1.giphy.com/media/v1.Y2lkPWM0YjAzNjc1M2V2MzJjM25lMDUyemV4dWF0ZGpvZ2duZjc2ZXUxaGY4ZnJvdjJveSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/xUPGcpfvIsVNeOAZgI/200.gif",
             "width": "354",
             "height": "200",
-            "size": "705342",
+            "size": "1458456",
             "frames": ""
           },
           "fixed_height_still": {
-            "url": "https://media0.giphy.com/media/yoJC2qNujv3gJWP504/200_s.gif?cid=c4b036756rudds4wzvwj2tiidfa6vuotyn8ovgwvgszezm68&ep=v1_gifs_search&rid=200_s.gif&ct=g",
+            "url": "https://media1.giphy.com/media/v1.Y2lkPWM0YjAzNjc1M2V2MzJjM25lMDUyemV4dWF0ZGpvZ2duZjc2ZXUxaGY4ZnJvdjJveSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/xUPGcpfvIsVNeOAZgI/200_s.gif",
             "width": "354",
             "height": "200",
-            "size": "30051",
+            "size": "25091",
             "frames": ""
           },
           "fixed_height_downsampled": {
-            "url": "https://media0.giphy.com/media/yoJC2qNujv3gJWP504/200_d.gif?cid=c4b036756rudds4wzvwj2tiidfa6vuotyn8ovgwvgszezm68&ep=v1_gifs_search&rid=200_d.gif&ct=g",
+            "url": "https://media1.giphy.com/media/v1.Y2lkPWM0YjAzNjc1M2V2MzJjM25lMDUyemV4dWF0ZGpvZ2duZjc2ZXUxaGY4ZnJvdjJveSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/xUPGcpfvIsVNeOAZgI/200_d.gif",
             "width": "354",
             "height": "200",
-            "size": "196979",
+            "size": "156249",
             "frames": ""
           },
           "fixed_width": {
-            "url": "https://media0.giphy.com/media/yoJC2qNujv3gJWP504/200w.gif?cid=c4b036756rudds4wzvwj2tiidfa6vuotyn8ovgwvgszezm68&ep=v1_gifs_search&rid=200w.gif&ct=g",
+            "url": "https://media1.giphy.com/media/v1.Y2lkPWM0YjAzNjc1M2V2MzJjM25lMDUyemV4dWF0ZGpvZ2duZjc2ZXUxaGY4ZnJvdjJveSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/xUPGcpfvIsVNeOAZgI/200w.gif",
             "width": "200",
-            "height": "113",
-            "size": "325561",
+            "height": "112",
+            "size": "629469",
             "frames": ""
           },
           "fixed_width_still": {
-            "url": "https://media0.giphy.com/media/yoJC2qNujv3gJWP504/200w_s.gif?cid=c4b036756rudds4wzvwj2tiidfa6vuotyn8ovgwvgszezm68&ep=v1_gifs_search&rid=200w_s.gif&ct=g",
+            "url": "https://media1.giphy.com/media/v1.Y2lkPWM0YjAzNjc1M2V2MzJjM25lMDUyemV4dWF0ZGpvZ2duZjc2ZXUxaGY4ZnJvdjJveSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/xUPGcpfvIsVNeOAZgI/200w_s.gif",
             "width": "200",
-            "height": "113",
-            "size": "14942",
+            "height": "112",
+            "size": "11533",
             "frames": ""
           },
           "fixed_width_downsampled": {
-            "url": "https://media0.giphy.com/media/yoJC2qNujv3gJWP504/200w_d.gif?cid=c4b036756rudds4wzvwj2tiidfa6vuotyn8ovgwvgszezm68&ep=v1_gifs_search&rid=200w_d.gif&ct=g",
+            "url": "https://media1.giphy.com/media/v1.Y2lkPWM0YjAzNjc1M2V2MzJjM25lMDUyemV4dWF0ZGpvZ2duZjc2ZXUxaGY4ZnJvdjJveSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/xUPGcpfvIsVNeOAZgI/200w_d.gif",
             "width": "200",
-            "height": "113",
-            "size": "83097",
+            "height": "112",
+            "size": "64778",
             "frames": ""
           }
         }
@@ -121,17 +122,17 @@
     },
     "reply_count": 0,
     "deleted_reply_count": 0,
-    "cid": "messaging:277d1327-0afd-4d76-87e8-fac1b3231ba7",
-    "created_at": "2025-03-15T00:15:59.336014Z",
-    "updated_at": "2025-03-15T00:15:59.336014Z",
+    "cid": "messaging:a6158c80-49e3-41cd-9832-5646c61b6ce2",
+    "created_at": "2025-08-01T00:44:04.857135Z",
+    "updated_at": "2025-08-01T00:44:04.857135Z",
     "shadowed": false,
     "mentioned_users": [
 
     ],
     "i18n": {
-      "id_text": "/giphy Test",
-      "ru_text": "/giphy Testo",
-      "language": "id"
+      "en_text": "/giphy Test",
+      "fr_text": "/Test Giphy",
+      "language": "en"
     },
     "silent": false,
     "pinned": false,
@@ -146,5 +147,5 @@
       "name": "Giphy"
     }
   },
-  "duration": "319.56ms"
+  "duration": "64.72ms"
 }
