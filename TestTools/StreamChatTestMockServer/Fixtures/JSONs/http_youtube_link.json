@@ -1,6 +1,6 @@
 {
   "message": {
-    "id": "1ba2f092-6dab-49e5-a500-83a1d2e477c1",
+    "id": "7f1a725f-5934-4caa-8183-186149e26fc3",
     "text": "https://youtube.com/watch?v=xOX7MsrbaPY",
     "html": "<p><a href=\"https://youtube.com/watch?v=xOX7MsrbaPY\" rel=\"nofollow\">https://youtube.com/watch?v=xOX7MsrbaPY</a></p>\n",
     "type": "regular",
@@ -8,23 +8,27 @@
       "id": "luke_skywalker",
       "name": "Luke Skywalker",
       "image": "https://vignette.wikia.nocookie.net/starwars/images/2/20/LukeTLJ.jpg",
-      "language": "id",
+      "language": "en",
       "role": "admin",
       "teams": [
 
       ],
       "created_at": "2024-04-04T09:26:11.805899Z",
-      "updated_at": "2025-03-04T17:42:53.930104Z",
+      "updated_at": "2025-08-20T09:40:53.079684Z",
       "banned": false,
       "online": true,
-      "last_active": "2025-03-15T00:15:52.376423417Z",
+      "last_active": "2025-09-01T00:44:17.442976836Z",
       "blocked_user_ids": [
 
       ],
+      "avg_response_time": 256050,
+      "canReceiveMessages": false,
+      "custom_extra_data_key": true,
+      "birthland": "Tatooine",
+      "canBeAddedToGroups": true,
       "team": "test",
       "type": "team",
-      "pando": "{\"speciality\":\"ios engineer\"}",
-      "birthland": "Tatooine"
+      "pando": "{\"speciality\":\"ios engineer\"}"
     },
     "attachments": [
       {
@@ -51,18 +55,13 @@
     },
     "reply_count": 0,
     "deleted_reply_count": 0,
-    "cid": "messaging:277d1327-0afd-4d76-87e8-fac1b3231ba7",
-    "created_at": "2025-03-15T00:15:59.807218Z",
-    "updated_at": "2025-03-15T00:15:59.807218Z",
+    "cid": "messaging:e06480b9-0f06-4118-b263-535f5a377dc3",
+    "created_at": "2025-09-01T00:44:25.694699Z",
+    "updated_at": "2025-09-01T00:44:25.694699Z",
     "shadowed": false,
     "mentioned_users": [
 
     ],
-    "i18n": {
-      "id_text": "https://youtube.com/watch?v=xOX7MsrbaPY",
-      "ru_text": "https://youtube.com/watch?v=xOX7MsrbaPY",
-      "language": "id"
-    },
     "silent": false,
     "pinned": false,
     "pinned_at": null,
@@ -72,5 +71,5 @@
 
     ]
   },
-  "duration": "313.78ms"
+  "duration": "276.66ms"
 }

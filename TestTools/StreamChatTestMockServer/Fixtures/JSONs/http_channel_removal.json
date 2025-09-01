@@ -1,12 +1,12 @@
 {
-  "duration": "34.53ms",
+  "duration": "20.52ms",
   "channel": {
-    "id": "277d1327-0afd-4d76-87e8-fac1b3231ba7",
+    "id": "e06480b9-0f06-4118-b263-535f5a377dc3",
     "type": "messaging",
-    "cid": "messaging:277d1327-0afd-4d76-87e8-fac1b3231ba7",
-    "created_at": "2025-03-15T00:15:53.237136Z",
-    "updated_at": "2025-03-15T00:16:02.845003Z",
-    "deleted_at": "2025-03-15T00:16:03.417951Z",
+    "cid": "messaging:e06480b9-0f06-4118-b263-535f5a377dc3",
+    "created_at": "2025-09-01T00:44:18.70035Z",
+    "updated_at": "2025-09-01T00:44:28.273707Z",
+    "deleted_at": "2025-09-01T00:44:29.036824Z",
     "created_by": null,
     "frozen": false,
     "disabled": false,
@@ -23,48 +23,19 @@
 
           ],
           "created_at": "2024-04-22T06:42:08.562992Z",
-          "updated_at": "2025-03-03T10:00:37.133281Z",
+          "updated_at": "2025-04-23T13:02:29.974824Z",
           "banned": false,
           "online": false,
-          "last_active": "2025-03-13T18:04:51.960419Z",
+          "last_active": "2025-08-26T10:42:42.481017Z",
           "blocked_user_ids": [
 
           ],
+          "avg_response_time": 8,
           "birthland": "Serenno"
         },
         "status": "member",
-        "created_at": "2025-03-15T00:15:53.24959Z",
-        "updated_at": "2025-03-15T00:15:53.24959Z",
-        "banned": false,
-        "shadow_banned": false,
-        "role": "member",
-        "channel_role": "channel_member",
-        "notifications_muted": false
-      },
-      {
-        "user_id": "han_solo",
-        "user": {
-          "id": "han_solo",
-          "name": "Han Solo",
-          "image": "https://vignette.wikia.nocookie.net/starwars/images/e/e2/TFAHanSolo.png",
-          "language": "",
-          "role": "user",
-          "teams": [
-
-          ],
-          "created_at": "2024-04-04T09:18:11.060737Z",
-          "updated_at": "2025-02-27T16:17:46.871132Z",
-          "banned": false,
-          "online": false,
-          "last_active": "2025-03-14T17:10:33.441699Z",
-          "blocked_user_ids": [
-
-          ],
-          "birthland": "Corellia"
-        },
-        "status": "member",
-        "created_at": "2025-03-15T00:15:53.24959Z",
-        "updated_at": "2025-03-15T00:15:53.24959Z",
+        "created_at": "2025-09-01T00:44:18.705435Z",
+        "updated_at": "2025-09-01T00:44:18.705435Z",
         "banned": false,
         "shadow_banned": false,
         "role": "member",
@@ -77,27 +48,31 @@
           "id": "luke_skywalker",
           "name": "Luke Skywalker",
           "image": "https://vignette.wikia.nocookie.net/starwars/images/2/20/LukeTLJ.jpg",
-          "language": "id",
+          "language": "en",
           "role": "admin",
           "teams": [
 
           ],
           "created_at": "2024-04-04T09:26:11.805899Z",
-          "updated_at": "2025-03-04T17:42:53.930104Z",
+          "updated_at": "2025-08-20T09:40:53.079684Z",
           "banned": false,
           "online": true,
-          "last_active": "2025-03-15T00:15:52.376423417Z",
+          "last_active": "2025-09-01T00:44:17.442976836Z",
           "blocked_user_ids": [
 
           ],
-          "team": "test",
-          "type": "team",
+          "avg_response_time": 256050,
           "pando": "{\"speciality\":\"ios engineer\"}",
-          "birthland": "Tatooine"
+          "canBeAddedToGroups": true,
+          "canReceiveMessages": false,
+          "custom_extra_data_key": true,
+          "type": "team",
+          "birthland": "Tatooine",
+          "team": "test"
         },
         "status": "member",
-        "created_at": "2025-03-15T00:15:53.24959Z",
-        "updated_at": "2025-03-15T00:15:53.24959Z",
+        "created_at": "2025-09-01T00:44:18.705435Z",
+        "updated_at": "2025-09-01T00:44:18.705435Z",
         "banned": false,
         "shadow_banned": false,
         "role": "owner",
@@ -110,32 +85,26 @@
           "id": "leia_organa",
           "name": "Leia Organa",
           "image": "https://vignette.wikia.nocookie.net/starwars/images/f/fc/Leia_Organa_TLJ.png",
-          "language": "ru",
+          "language": "",
           "role": "admin",
           "teams": [
 
           ],
           "created_at": "2024-04-04T09:42:00.68335Z",
-          "updated_at": "2025-02-20T11:14:21.287666Z",
+          "updated_at": "2025-08-22T10:38:59.955899Z",
           "banned": false,
           "online": false,
-          "last_active": "2025-03-14T13:17:25.910928Z",
+          "last_active": "2025-08-31T13:23:51.951161Z",
           "blocked_user_ids": [
 
           ],
+          "avg_response_time": 295830,
           "birthland": "Polis Massa",
-          "private_settings": {
-            "readReceipts": {
-              "enabled": false
-            },
-            "typingIndicators": {
-              "enabled": false
-            }
-          }
+          "is_moderator": true
         },
         "status": "member",
-        "created_at": "2025-03-15T00:15:57.890803Z",
-        "updated_at": "2025-03-15T00:15:57.890803Z",
+        "created_at": "2025-09-01T00:44:23.215307Z",
+        "updated_at": "2025-09-01T00:44:23.215307Z",
         "banned": false,
         "shadow_banned": false,
         "role": "admin",
@@ -145,7 +114,7 @@
     ],
     "config": {
       "created_at": "2021-03-01T19:26:18.406502Z",
-      "updated_at": "2025-02-13T14:46:16.795117Z",
+      "updated_at": "2025-07-28T15:20:21.098826Z",
       "name": "messaging",
       "typing_events": true,
       "read_events": true,
@@ -159,9 +128,12 @@
       "url_enrichment": true,
       "custom_events": true,
       "push_notifications": true,
-      "reminders": false,
+      "reminders": true,
       "mark_messages_pending": false,
       "polls": true,
+      "user_message_reminders": false,
+      "shared_locations": true,
+      "count_messages": true,
       "message_retention": "infinite",
       "max_message_length": 5000,
       "automod": "AI",
@@ -192,28 +164,33 @@
         }
       ]
     },
-    "truncated_at": "2025-03-15T00:16:03.417951Z",
+    "truncated_at": "2025-09-01T00:44:29.036824Z",
     "truncated_by": {
       "id": "luke_skywalker",
       "name": "Luke Skywalker",
       "image": "https://vignette.wikia.nocookie.net/starwars/images/2/20/LukeTLJ.jpg",
-      "language": "id",
+      "language": "en",
       "role": "admin",
       "teams": [
 
       ],
       "created_at": "2024-04-04T09:26:11.805899Z",
-      "updated_at": "2025-03-04T17:42:53.930104Z",
+      "updated_at": "2025-08-20T09:40:53.079684Z",
       "banned": false,
       "online": true,
-      "last_active": "2025-03-15T00:15:52.376423417Z",
+      "last_active": "2025-09-01T00:44:17.442976836Z",
       "blocked_user_ids": [
 
       ],
-      "type": "team",
+      "avg_response_time": 256050,
+      "team": "test",
+      "custom_extra_data_key": true,
       "pando": "{\"speciality\":\"ios engineer\"}",
+      "type": "team",
+      "canReceiveMessages": false,
       "birthland": "Tatooine",
-      "team": "test"
-    }
+      "canBeAddedToGroups": true
+    },
+    "message_count": 0
   }
 }
