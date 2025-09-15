@@ -1,35 +1,29 @@
 {
   "type": "member.added",
-  "cid": "messaging:277d1327-0afd-4d76-87e8-fac1b3231ba7",
-  "channel_id": "277d1327-0afd-4d76-87e8-fac1b3231ba7",
+  "cid": "messaging:331bb1d5-ad25-4854-94b7-08a273a0514c",
+  "channel_id": "331bb1d5-ad25-4854-94b7-08a273a0514c",
   "channel_type": "messaging",
   "member": {
     "user_id": "leia_organa",
     "user": {
       "id": "leia_organa",
       "role": "admin",
+      "teams_role": null,
       "created_at": "2024-04-04T09:42:00.68335Z",
-      "updated_at": "2025-02-20T11:14:21.287666Z",
-      "last_active": "2025-03-14T13:17:25.910928Z",
-      "last_engaged_at": "2025-03-14T04:10:13.086949Z",
+      "updated_at": "2025-08-22T10:38:59.955899Z",
+      "last_active": "2025-09-15T00:16:55.859492863Z",
+      "last_engaged_at": "2025-09-13T00:19:27.034938Z",
       "banned": false,
       "online": false,
-      "language": "ru",
-      "birthland": "Polis Massa",
-      "private_settings": {
-        "readReceipts": {
-          "enabled": false
-        },
-        "typingIndicators": {
-          "enabled": false
-        }
-      },
+      "avg_response_time": 711527,
       "name": "Leia Organa",
-      "image": "https://vignette.wikia.nocookie.net/starwars/images/f/fc/Leia_Organa_TLJ.png"
+      "image": "https://vignette.wikia.nocookie.net/starwars/images/f/fc/Leia_Organa_TLJ.png",
+      "birthland": "Polis Massa",
+      "is_moderator": true
     },
     "status": "member",
-    "created_at": "2025-03-15T00:15:57.890803Z",
-    "updated_at": "2025-03-15T00:15:57.890803Z",
+    "created_at": "2025-09-15T00:37:32.624295Z",
+    "updated_at": "2025-09-15T00:37:32.624295Z",
     "banned": false,
     "shadow_banned": false,
     "is_global_banned": false,
@@ -42,25 +36,19 @@
   "user": {
     "id": "leia_organa",
     "role": "admin",
+    "teams_role": null,
     "created_at": "2024-04-04T09:42:00.68335Z",
-    "updated_at": "2025-02-20T11:14:21.287666Z",
-    "last_active": "2025-03-14T13:17:25.910928Z",
-    "last_engaged_at": "2025-03-14T04:10:13.086949Z",
+    "updated_at": "2025-08-22T10:38:59.955899Z",
+    "last_active": "2025-09-15T00:16:55.859492863Z",
+    "last_engaged_at": "2025-09-13T00:19:27.034938Z",
     "banned": false,
     "online": false,
-    "language": "ru",
-    "birthland": "Polis Massa",
-    "private_settings": {
-      "readReceipts": {
-        "enabled": false
-      },
-      "typingIndicators": {
-        "enabled": false
-      }
-    },
+    "avg_response_time": 711527,
     "name": "Leia Organa",
-    "image": "https://vignette.wikia.nocookie.net/starwars/images/f/fc/Leia_Organa_TLJ.png"
+    "image": "https://vignette.wikia.nocookie.net/starwars/images/f/fc/Leia_Organa_TLJ.png",
+    "birthland": "Polis Massa",
+    "is_moderator": true
   },
-  "channel_last_message_at": "2025-03-15T00:15:56.802706Z",
-  "created_at": "2025-03-15T00:15:57.898833665Z"
+  "channel_last_message_at": "2025-09-15T00:37:31.361417Z",
+  "created_at": "2025-09-15T00:37:32.633551312Z"
 }
